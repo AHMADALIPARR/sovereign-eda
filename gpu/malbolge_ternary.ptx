@@ -1,0 +1,138 @@
+// Implements the exact Lean tritAdd, tritSub, crazyOp (0x00281A01 LUT), and permuteTryte (rotate-left-1 + crazyOp(t, t)) over packed 10-trit trytes.
+.version 7.0
+.target sm_70
+.address_size 64
+
+// Lean: tritAdd (a b : Trit) : Trit
+.func (.reg .u32 res) trit_add(.reg .u32 a, .reg .u32 b)
+{
+    .reg .u32 s, s_sub;
+    .reg .pred p;
+
+    add.u32     s, a, b;
+    setp.ge.u32 p, s, 3;
+    sub.u32     s_sub, s, 3;
+    selp.u32    res, s_sub, s, p;
+    ret;
+}
+
+// Lean: tritSub (a b : Trit) : Trit
+.func (.reg .u32 res) trit_sub(.reg .u32 a, .reg .u32 b)
+{
+    .reg .u32 t, d, d_sub;
+    .reg .pred p;
+
+    add.u32     t, a, 3;
+    sub.u32     d, t, b;
+    setp.ge.u32 p, d, 3;
+    sub.u32     d_sub, d, 3;
+    selp.u32    res, d_sub, d, p;
+    ret;
+}
+
+// Lean: crazyOp (a b : Trit) : Trit (LUT = 0x00281A01)
+.func (.reg .u32 res) crazy_op(.reg .u32 a, .reg .u32 b)
+{
+    .reg .u32 k, sh, lut, shifted;
+
+    and.b32     a, a, 3;
+    and.b32     b, b, 3;
+    shl.b32     k, a, 2;
+    or.b32      k, k, b;
+    shl.b32     sh, k, 1;
+    mov.u32     lut, 0x00281A01;
+    shr.u32     shifted, lut, sh;
+    and.b32     res, shifted, 3;
+    ret;
+}
+
+// Packed 10-trit Tryte Kernel
+// op: 0 = tritAdd, 1 = tritSub, 2 = crazyOp, 3 = permuteTryte
+.visible .entry ternary_tryte_kernel(
+    .param .u64 param_A,
+    .param .u64 param_B,
+    .param .u64 param_C,
+    .param .u32 param_op,
+    .param .u32 param_n
+)
+{
+    .reg .pred p_oob, p_perm, p_loop, p_op0, p_op1;
+    .reg .u32  tid, bdim, ctaid, idx, n, op;
+    .reg .u32  va, vb, res, i, sh, ta, tb, tr;
+    .reg .u32  rot_lo, rot_hi, tmp;
+    .reg .u64  addrA, addrB, addrC, off;
+
+    ld.param.u64 addrA, [param_A];
+    ld.param.u64 addrB, [param_B];
+    ld.param.u64 addrC, [param_C];
+    ld.param.u32 op,    [param_op];
+    ld.param.u32 n,     [param_n];
+
+    mov.u32      ctaid, %ctaid.x;
+    mov.u32      bdim,  %ntid.x;
+    mov.u32      tid,   %tid.x;
+    mad.lo.u32   idx, ctaid, bdim, tid;
+    setp.ge.u32  p_oob, idx, n;
+    @p_oob bra   DONE;
+
+    mul.wide.u32 off, idx, 4;
+    add.u64      addrA, addrA, off;
+    add.u64      addrB, addrB, off;
+    add.u64      addrC, addrC, off;
+
+    ld.global.u32 va, [addrA];
+    ld.global.u32 vb, [addrB];
+    and.b32       va, va, 0x000FFFFF;
+    and.b32       vb, vb, 0x000FFFFF;
+
+    // If op == 3 (permuteTryte), rotateLeft1 before loop and set vb = va
+    setp.eq.u32  p_perm, op, 3;
+    @!p_perm bra INIT_LOOP;
+    shr.u32      rot_lo, va, 2;
+    and.b32      rot_lo, rot_lo, 0x0003FFFF;
+    and.b32      rot_hi, va, 3;
+    shl.b32      rot_hi, rot_hi, 18;
+    or.b32       va, rot_lo, rot_hi;
+    mov.u32      vb, va;
+
+INIT_LOOP:
+    mov.u32      res, 0;
+    mov.u32      i, 0;
+
+LOOP_TRITS:
+    shl.b32      sh, i, 1;
+    shr.u32      ta, va, sh;
+    and.b32      ta, ta, 3;
+    shr.u32      tb, vb, sh;
+    and.b32      tb, tb, 3;
+
+    setp.eq.u32  p_op0, op, 0;
+    setp.eq.u32  p_op1, op, 1;
+    @p_op0 bra   DO_ADD;
+    @p_op1 bra   DO_SUB;
+    bra          DO_CRAZY;
+
+DO_ADD:
+    call (tr), trit_add, (ta, tb);
+    bra MERGE_TRIT;
+
+DO_SUB:
+    call (tr), trit_sub, (ta, tb);
+    bra MERGE_TRIT;
+
+DO_CRAZY:
+    call (tr), crazy_op, (ta, tb);
+
+MERGE_TRIT:
+    shl.b32      tmp, tr, sh;
+    or.b32       res, res, tmp;
+    add.u32      i, i, 1;
+    setp.lt.u32  p_loop, i, 10;
+    @p_loop bra  LOOP_TRITS;
+
+    and.b32      res, res, 0x000FFFFF;
+    st.global.u32 [addrC], res;
+
+DONE:
+    ret;
+}

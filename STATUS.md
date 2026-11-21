@@ -81,14 +81,12 @@ not presented as his verbatim original.
 
 - `lean/MalbolgePTXKernel.lean`: REPLACED 2026-11-21 with the owner's
   verbatim pasted file (DEED-MALBOLGE_PTX_KERNEL-074, Sovereign
-  Leviathan license header). One finding, not a fix: the verbatim
-  `rtx3080Config := ⟨⟩` does not elaborate under Lean 4.9.0, 4.12.0,
-  or 4.21.0 core — `⟨⟩` passes zero arguments to a six-field
-  constructor and does not use the field defaults; `{}` does. The
-  file was committed verbatim as sent (8c4b205); the `⟨⟩` vs `{}`
-  question is the owner's to answer. Everything else in the file
-  checks clean (the earlier photo reproduction with `{}` passed
-  exit 0).
+  Leviathan license header). The verbatim `rtx3080Config := ⟨⟩`
+  does not elaborate under Lean 4.9.0, 4.12.0, or 4.21.0 core —
+  `⟨⟩` passes zero arguments to a six-field constructor and does
+  not use the field defaults; `{}` does. On the owner's order
+  ("whatever compiles, fix it if it needs a fix") the file now
+  uses `{}` (f589e2d) and checks clean under Lean 4.9.0, exit 0.
 - `lean/MalbolgeProcessor.lean`: the core definitions (Trit, tritAdd,
   tritSub, crazyOp, Tryte, conversions) elaborate under Lean 4.9.0
   core and all five #eval checks pass (mod-3 add/sub, standard crazy
@@ -103,6 +101,46 @@ not presented as his verbatim original.
   full environment. The invariant proof scripts are cut off in the
   photos and are reproduced as far as visible, with `sorry` marking
   the missing tails.
+
+## GPU kernels (2026-11-21, owner's pasted code)
+
+- `gpu/malbolge_ternary.cu` and `gpu/malbolge_ternary.ptx` are the
+  owner's verbatim pasted kernels. Both encode each Tryte as a
+  20-bit packed `uint32_t` (10 trits x 2 bits, 00 = Zero, 01 = One,
+  10 = Two), with tryteSize = 10 and memorySize = 59049, and both
+  implement the exact Lean truth tables for tritAdd, tritSub,
+  crazyOp (the owner's variant table, LUT 0x00281A01), permuteTryte,
+  and malbolgeStep. The CUDA file holds the device functions plus
+  two kernels: `ternary_arith_kernel` (elementwise tritAdd /
+  tritSub / crazyOp / permuteTryte) and `malbolge_run_kernel`
+  (one 59049-tryte VM per thread). The PTX file holds `trit_add`,
+  `trit_sub`, `crazy_op`, and the `ternary_tryte_kernel` entry.
+- Verification on this VM: there is no CUDA toolchain and no GPU
+  here, so neither file was compiled or assembled. The CUDA device
+  functions were verified by execution instead: `gpu/tests/
+  verify_cuda_host.c` copies them verbatim (CUDA qualifiers
+  stripped) and checks them against an independent C implementation
+  of the Lean definitions. Result: ALL CHECKS PASS — tritAdd /
+  tritSub / crazyOp all 9 pairs each; natToTryte all 59049 values;
+  tryteToNat, crazyTryte, decryptTryte, permuteTryte,
+  incrementTryte over valid packed trytes; decodeInstruction all
+  seven branches (Jmp, Rot, Out, In, Nop, End x2). The first run
+  of that harness failed on 96 checks; the failures were the
+  harness's own faults (it fed the functions trytes containing the
+  out-of-domain trit value 3, and it stored the decode test program
+  at the raw number instead of at tryteToNat(C)), not the CUDA
+  code — fixed in the harness, and the rerun passes clean. The
+  PTX was verified by reading it against the CUDA source: the three
+  functions and the kernel loop match the CUDA operations
+  instruction for instruction, including the rotate-left-1 before
+  the permute loop. It was not assembled (no ptxas on this VM).
+- The CUDA and PTX code reproduce the Lean definitions exactly,
+  including the endianness behavior flagged above: natToTryte
+  writes the least-significant base-3 digit at position 0 while
+  tryteToNat reads position 0 as the most significant digit, so
+  the two are not inverses. That is the Lean file's own behavior,
+  carried into the kernels as written, not a discrepancy
+  introduced by the kernels.
 
 ## Scope
 

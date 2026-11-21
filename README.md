@@ -27,6 +27,20 @@ The machine's arithmetic is the crazy operation, a tritwise lookup:
 | 1       | 1 | 0 | 2 |
 | 2       | 2 | 2 | 1 |
 
+The Lean formalization and the GPU kernels use the owner's own crazy
+table, which differs from the standard table in rows 1 and 2:
+
+| a \ b | 0 | 1 | 2 |
+| ----- | - | - | - |
+| 0     | 1 | 0 | 0 |
+| 1     | 2 | 2 | 1 |
+| 2     | 0 | 2 | 2 |
+
+The two tables live in different layers: the circuit and the reference
+interpreter run the original Malbolge table, the Lean and GPU layers
+run the owner's variant. Each tryte is packed as a 20-bit `uint32_t`,
+10 trits at 2 bits per trit, 00 = Zero, 01 = One, 10 = Two.
+
 The other operations are tritwise rotate right by one trit, the
 position-sensitive decode `(c + mem[c]) mod 94`, and the self-modifying
 encipherment: after a non-halting instruction runs, the word at the code
@@ -46,6 +60,9 @@ itself as it runs.
 | `malbolge-circuit/tests/` | `test_core.py`: deterministic independent mathematical tests; `test_reference.sh`: interpreter smoke test |
 | `malbolge-circuit/docs/` | `SEMANTICS.md`: reference-interpreter machine-step semantics |
 | `malbolge-circuit/examples/` | `nop_halt.mal`: NOP followed by HALT fixture |
+| `lean/` | `MalbolgeProcessorRoot.lean`: the owner's Malbolge processor formalization; `MalbolgePTXKernel.lean`: the PTX kernel specification |
+| `gpu/` | `malbolge_ternary.cu`: CUDA kernels for the ternary tryte operations and the deterministic Malbolge processor step; `malbolge_ternary.ptx`: the PTX assembly kernel for the same operations |
+| `gpu/tests/` | `verify_cuda_host.c`: host-side C verification of the CUDA device functions against the Lean definitions, no GPU needed |
 | `STATUS.md` | Verification record: what was run, what passed, what needs the hardware toolchain |
 
 `malbolge-circuit/README.md` documents the circuit project itself,
@@ -75,6 +92,20 @@ cd malbolge-circuit && ghdl -a --std=08 rtl/malbolge_alu.vhd
 The WhyML proof and the SAW/Yosys equivalence proof need their
 toolchains; see `malbolge-circuit/Makefile` targets `whyml`,
 `analyze`, and `prove`.
+
+Compile the CUDA source to PTX, or assemble the PTX directly:
+
+```sh
+nvcc -arch=sm_70 -ptx gpu/malbolge_ternary.cu -o compiled.ptx
+nvcc -arch=sm_70 -cubin gpu/malbolge_ternary.ptx -o malbolge_ternary.cubin
+```
+
+Check the CUDA device functions on the host, without a GPU:
+
+```sh
+cc -std=c11 -O2 -Wall -Wextra gpu/tests/verify_cuda_host.c -o verify_cuda_host
+./verify_cuda_host
+```
 
 ## License
 
