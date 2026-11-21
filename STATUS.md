@@ -46,22 +46,29 @@
   23 mux, 20 logic_not, 20 eq, 20 pmux, 20 modfloor, 18 div,
   11 mul, 11 add, 10 reduce_or, 2 le, 1 and).
 
-## `make prove`: FAILS (two blockers)
+## `make prove`: BLOCKERS FIXED, PROOF RUNS BUT SLOW
 
-- Blocker 1, paths: SAW resolves the script's relative paths
-  (`cryptol/MalbolgeCore.cry`, `build/malbolge_alu.json`) relative
-  to the script's own directory (`saw/`), so neither is found when
-  run via `make prove` from the project root. (Verified: with the
-  script copied to the project root, the Cryptol import resolves.)
-- Blocker 2, `$modfloor` cells: SAW 1.5 `yosys_import` cannot
-  handle the 20 `$modfloor` cells in the Yosys JSON (they come from
-  the VHDL `mod` operations). Error: `Encountered a cell "\92"
-  with type "$modfloor", but could not find a submodule named
-  "$modfloor"`. SAW treats unknown cell types as submodule
-  instantiations. This blocks the equivalence check itself.
-- Cryptol: SAW 1.5 bundles Cryptol, and the `.cry` contract file
-  loads once paths resolve, but the equivalence was not discharged
-  because of blocker 2.
+- Fixed 2026-11-21 on the owner's order ("fix those"):
+  - Blocker 1, paths: the SAW script's relative paths are now
+    `../cryptol/MalbolgeCore.cry` and
+    `../build/malbolge_alu.json`, because SAW resolves paths
+    relative to the script's own directory (`saw/`).
+  - Blocker 2, `$modfloor` cells: a Yosys techmap file
+    `yosys/modfloor_map.v` expands each `$modfloor` cell into
+    `$div` / `$mul` / `$sub` (identity `a mod b =
+    a - (a div b) * b`, valid for floor div/mod; the design's
+    values are naturals, so it holds). The Makefile `analyze`
+    target now runs `techmap -map yosys/modfloor_map.v` before
+    `write_json`. The VHDL and Cryptol files were not changed.
+- `make analyze` verified with the fix: the JSON now has zero
+  `$modfloor` cells (30 mul, 23 mux, 22 div, 20 logic_not,
+  20 eq, 20 pmux, 20 sub, 10 reduce_or, 10 add, 2 le, 1 and).
+- The proof itself: SAW 1.5 loads the script and the JSON and
+  starts the `w4` equivalence check, but it did not finish
+  within a 10-minute run on this VM (1.5 CPUs) — the 16-bit
+  div/mul circuits make the SMT problem heavy. It was stopped
+  by the 10-minute timeout, not by an error. A bigger machine
+  (or a longer run) may complete it.
 
 ## Scope
 
