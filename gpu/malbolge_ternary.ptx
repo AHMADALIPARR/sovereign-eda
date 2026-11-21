@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: LicenseRef-Sovereign-Leviathan-SL-AGPL3-001 */
+/* Copyright (C) 2026 SnapKitty West */
+
 // Implements the exact Lean tritAdd, tritSub, crazyOp (0x00281A01 LUT), and permuteTryte (rotate-left-1 + crazyOp(t, t)) over packed 10-trit trytes.
 .version 7.0
 .target sm_70

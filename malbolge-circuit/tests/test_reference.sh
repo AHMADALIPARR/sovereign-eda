@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-Sovereign-Leviathan-SL-AGPL3-001
+# Copyright (C) 2026 SnapKitty West
+
 #!/bin/sh
 set -eu
 cd "$(dirname "$0")/.."

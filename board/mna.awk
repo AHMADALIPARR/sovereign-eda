@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-Sovereign-Leviathan-SL-AGPL3-001
+# Copyright (C) 2026 SnapKitty West
+
 #!/usr/bin/awk -f
 # mna.awk — Zero-dependency POSIX awk MNA Circuit Solver (DC + Transient)
 # Usage: awk -f mna.awk board.txt

@@ -1,3 +1,6 @@
+* SPDX-License-Identifier: LicenseRef-Sovereign-Leviathan-SL-AGPL3-001
+* Copyright (C) 2026 SnapKitty West
+
 * Thermal Corner & Derating Sweep for P4 Dual-Circuit
 .include "../../analog/parasitic_model.sp"
 

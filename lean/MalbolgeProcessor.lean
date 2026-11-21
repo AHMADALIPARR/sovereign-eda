@@ -1,3 +1,6 @@
+/- SPDX-License-Identifier: LicenseRef-Sovereign-Leviathan-SL-AGPL3-001
+   Copyright (C) 2026 SnapKitty West -/
+
 /- MalbolgeProcessor.lean
    REPRODUCED FROM PHOTOS by Muse, 2026-11-21, on the owner's order.
    The owner's original lives deep in a 300,000-line repo that cannot be

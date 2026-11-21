@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-Sovereign-Leviathan-SL-AGPL3-001
+# Copyright (C) 2026 SnapKitty West
+
 #!/usr/bin/awk -f
 # eda.awk — Zero-dependency Virtual EDA (POSIX awk)
 # Modes: -v mode=spice (default) | -v mode=netlist

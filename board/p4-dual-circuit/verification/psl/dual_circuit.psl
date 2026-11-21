@@ -1,3 +1,6 @@
+-- SPDX-License-Identifier: LicenseRef-Sovereign-Leviathan-SL-AGPL3-001
+-- Copyright (C) 2026 SnapKitty West
+
 -- PSL Verification Properties for p4_controller / dual_circuit
 vunit p4_psl(p4_controller(rtl)) {
     default clock is rising_edge(clk);

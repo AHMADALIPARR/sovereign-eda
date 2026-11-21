@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: LicenseRef-Sovereign-Leviathan-SL-AGPL3-001 */
+/* Copyright (C) 2026 SnapKitty West */
+
 // Expand $modfloor into $div / $mul / $sub (all supported by SAW yosys_import).
 // Identity: a mod b = a - (a div b) * b, valid for floor div/mod.
 (* techmap_celltype = "$modfloor" *)

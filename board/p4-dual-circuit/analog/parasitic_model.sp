@@ -1,3 +1,6 @@
+* SPDX-License-Identifier: LicenseRef-Sovereign-Leviathan-SL-AGPL3-001
+* Copyright (C) 2026 SnapKitty West
+
 * P4 Dual-Circuit Parasitic RC + Bitline Coupling Model
 .subckt dual_interconnect drv_a drv_b rcv_a rcv_b vss
 R_a1  drv_a  mid_a  12.5

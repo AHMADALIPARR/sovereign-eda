@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: LicenseRef-Sovereign-Leviathan-SL-AGPL3-001 */
+/* Copyright (C) 2026 SnapKitty West */
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;

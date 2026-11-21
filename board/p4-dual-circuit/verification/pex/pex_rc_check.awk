@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LicenseRef-Sovereign-Leviathan-SL-AGPL3-001
+# Copyright (C) 2026 SnapKitty West
+
 #!/usr/bin/awk -f
 # pex_rc_check.awk — Zero-dependency RC delay & coupling budget checker
 # Usage: awk -f pex_rc_check.awk ../../analog/parasitic_model.sp

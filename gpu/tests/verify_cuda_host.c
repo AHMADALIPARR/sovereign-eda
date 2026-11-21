@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: LicenseRef-Sovereign-Leviathan-SL-AGPL3-001 */
+/* Copyright (C) 2026 SnapKitty West */
+
 /* Host-side verification of the CUDA device functions in
  * gpu/malbolge_ternary.cu, against the Lean 4 definitions in
  * lean/MalbolgeProcessorRoot.lean.
