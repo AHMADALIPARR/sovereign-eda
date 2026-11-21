@@ -79,9 +79,16 @@ is labeled in-file: what was clearly readable is his code, what was
 cut off or unreadable is marked RECONSTRUCTED or CUT OFF, and it is
 not presented as his verbatim original.
 
-- `lean/MalbolgePTXKernel.lean`: checks clean under Lean 4.9.0 core
-  (exit 0, no errors). PTXKernelConfig (RTX 3080), ptxTritAdd,
-  ptxMalbolgeKernel, resourceAnalysis, three True theorems.
+- `lean/MalbolgePTXKernel.lean`: REPLACED 2026-11-21 with the owner's
+  verbatim pasted file (DEED-MALBOLGE_PTX_KERNEL-074, Sovereign
+  Leviathan license header). One finding, not a fix: the verbatim
+  `rtx3080Config := ⟨⟩` does not elaborate under Lean 4.9.0, 4.12.0,
+  or 4.21.0 core — `⟨⟩` passes zero arguments to a six-field
+  constructor and does not use the field defaults; `{}` does. The
+  file was committed verbatim as sent (8c4b205); the `⟨⟩` vs `{}`
+  question is the owner's to answer. Everything else in the file
+  checks clean (the earlier photo reproduction with `{}` passed
+  exit 0).
 - `lean/MalbolgeProcessor.lean`: the core definitions (Trit, tritAdd,
   tritSub, crazyOp, Tryte, conversions) elaborate under Lean 4.9.0
   core and all five #eval checks pass (mod-3 add/sub, standard crazy
