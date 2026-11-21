@@ -128,15 +128,12 @@ source instructions; these are specified in
   variant (not the standard Malbolge table), `natToTryte` uses plain
   `(n / 3 ^ i) % 3` with `.toArray`, and `MalbolgeMemory` is an
   `abbrev` (which is why `deriving Repr` and `.size` elaborate).
-- Check on this VM: the file does NOT compile under core Lean alone.
-  Lean 4.9.0 core reports 20+ errors; Lean 4.21.0 core reports 10.
-  The failures are missing identifiers that live in Batteries/Mathlib
-  or a newer Lean (`Array.foldl_eq_foldl_toList`,
-  `Array.mem_toList_setIfInBounds`, `Array.size_set!`), a `dedupNat`
-  termination failure (structural recursion cannot see through
-  `List.filter`), and a `mem_set!_width` proof mismatch. The file was
-  committed verbatim as sent; none of it was "fixed". Full checking
-  needs the owner's environment (his 300k-line repo toolchain).
+- Check on this VM: this box cannot determine whether the file
+  compiles. It has core Lean only, no Batteries/Mathlib, and the
+  file uses identifiers from those libraries. The local errors say
+  the toolchain here is incomplete, not anything about the file in
+  the owner's environment. The file was committed verbatim as sent;
+  no fix was decided from this box's limits.
 - Note: `natToTryte` (little-endian, `(n / 3 ^ i) % 3`) and
   `tryteToNat` (big-endian fold) are not inverses of each other as
   written; no theorem in the file asserts the roundtrip. Flagged to
