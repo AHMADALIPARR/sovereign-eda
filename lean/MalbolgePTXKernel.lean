@@ -35,7 +35,7 @@ structure PTXKernelConfig where
   tensorCoreOps : Bool := true
   deriving Repr
 
-def rtx3080Config : PTXKernelConfig := ⟨⟩
+def rtx3080Config : PTXKernelConfig := {}
 
 def ptxTritAdd : String :=
   ".visible .func trit_add(.param .b32 a, .param .b32 b) .returns (.b32) {
