@@ -19,44 +19,44 @@ module MalbolgeCore
   let function rotate (x:int) : int
     requires { word x }
     ensures  { word result }
-    ensures  { result = x / 3 + (x mod 3) * 19683 }
-  = x / 3 + (x mod 3) * 19683
+    ensures  { result = div x 3 + (mod x 3) * 19683 }
+  = div x 3 + (mod x 3) * 19683
 
   let function decode (c:int) (cell:int) : int
     requires { word c /\ word cell }
     ensures  { 0 <= result < 94 }
-  = (c + cell) mod 94
+  = mod (c + cell) 94
 
   let function inc (x:int) : int
     requires { word x }
     ensures  { word result }
-    ensures  { result = (x + 1) mod modulus }
-  = (x + 1) mod modulus
+    ensures  { result = mod (x + 1) modulus }
+  = mod (x + 1) modulus
 
   let function crazy10 (a:int) (d:int) : int
     requires { word a /\ word d }
     ensures  { word result }
   =
-    let a0 = a mod 3 in
-    let d0 = d mod 3 in
-    let a1 = (a / 3) mod 3 in
-    let d1 = (d / 3) mod 3 in
-    let a2 = (a / 9) mod 3 in
-    let d2 = (d / 9) mod 3 in
-    let a3 = (a / 27) mod 3 in
-    let d3 = (d / 27) mod 3 in
-    let a4 = (a / 81) mod 3 in
-    let d4 = (d / 81) mod 3 in
-    let a5 = (a / 243) mod 3 in
-    let d5 = (d / 243) mod 3 in
-    let a6 = (a / 729) mod 3 in
-    let d6 = (d / 729) mod 3 in
-    let a7 = (a / 2187) mod 3 in
-    let d7 = (d / 2187) mod 3 in
-    let a8 = (a / 6561) mod 3 in
-    let d8 = (d / 6561) mod 3 in
-    let a9 = (a / 19683) mod 3 in
-    let d9 = (d / 19683) mod 3 in
+    let a0 = mod a 3 in
+    let d0 = mod d 3 in
+    let a1 = mod (div a 3) 3 in
+    let d1 = mod (div d 3) 3 in
+    let a2 = mod (div a 9) 3 in
+    let d2 = mod (div d 9) 3 in
+    let a3 = mod (div a 27) 3 in
+    let d3 = mod (div d 27) 3 in
+    let a4 = mod (div a 81) 3 in
+    let d4 = mod (div d 81) 3 in
+    let a5 = mod (div a 243) 3 in
+    let d5 = mod (div d 243) 3 in
+    let a6 = mod (div a 729) 3 in
+    let d6 = mod (div d 729) 3 in
+    let a7 = mod (div a 2187) 3 in
+    let d7 = mod (div d 2187) 3 in
+    let a8 = mod (div a 6561) 3 in
+    let d8 = mod (div d 6561) 3 in
+    let a9 = mod (div a 19683) 3 in
+    let d9 = mod (div d 19683) 3 in
       crazy_trit a0 d0
     + 3 * crazy_trit a1 d1
     + 9 * crazy_trit a2 d2

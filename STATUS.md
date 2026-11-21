@@ -23,15 +23,19 @@
   (all via apt), SAW 1.5 with bundled solvers
   (`~/workspace/.tools/saw-1.5-ubuntu-24.04-X64-with-solvers/`).
 
-## `make whyml`: FAILS
+## `make whyml`: PASSES
 
-- Why3 1.6.0 reports `semantics/MalbolgeCore.mlw`, line 23:
-  `unbound function or predicate symbol '(/)'`. The `/` infix
-  operator is not in scope for integers in Why3 1.6.0 (verified
-  with a minimal file: `/` fails, `div` works).
-- The file uses `/` in `rotate`, `decode`, `inc`, and `crazy10`.
-- Fix offered, not installed: replace `/` with `div`
-  (e.g. `div x 3` instead of `x / 3`). The file was not edited.
+- Fixed 2026-11-21 on the owner's order ("fix the slash"): all 20
+  `/` division operators in `semantics/MalbolgeCore.mlw` replaced
+  with prefix `div` (Why3 1.6.0 has no `/` infix in scope for
+  integers). The same run exposed a second, identical issue: infix
+  `mod` is also not in scope in Why3 1.6.0, so all 23 `mod` uses
+  were converted to prefix form (`mod x 3`). The `/\` logical-AND
+  operators were left untouched. No other change to the file:
+  same functions, same requires/ensures, same bodies.
+- `why3 prove` typechecks the file, and with Z3 4.8.12 all five
+  verification conditions discharge Valid: crazy_trit, rotate,
+  decode, inc, crazy10.
 
 ## `make analyze`: PASSES
 
