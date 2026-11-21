@@ -9,14 +9,19 @@
 ![Cryptol](https://img.shields.io/badge/Cryptol-3.0-0B6E8F)
 ![CUDA](https://img.shields.io/badge/CUDA-sm__70-76B900)
 ![Lean](https://img.shields.io/badge/Lean-4-4A90D9)
+![AWK](https://img.shields.io/badge/AWK-POSIX-4EAA25)
 
-Sovereign EDA is an electronic design automation workspace built on ternary machines. Its first project is Malbolge, the ternary virtual machine, carried from the reference interpreter through a bit-precise hardware ALU, a formal semantics, and a GPU execution engine, in one tree. A machine word is ten trits wide. Memory holds 59049 words. Code and data share the same memory, and a program rewrites itself as it runs.
+Sovereign EDA is an electronic design automation workspace. It holds two projects in one tree. The first is Malbolge, the ternary virtual machine, carried from the reference interpreter through a bit-precise hardware ALU, a formal semantics, and a GPU execution engine. A machine word is ten trits wide. Memory holds 59049 words. Code and data share the same memory, and a program rewrites itself as it runs. The second is the board: a plain-text circuit board format and a zero-dependency POSIX awk EDA compiler, with a pure-awk circuit solver, a dual-circuit project with formal semantics and proof gates, and an SRAM write-cell.
 
-The repository is the machine and its evidence in one place. The reference interpreter runs the machine. The VHDL ALU computes the same operations in hardware. The WhyML and Cryptol layers state the same operations as contracts. The Lean formalization states the processor, its invariants, and its determinism. The CUDA and PTX kernels run the same operations on the GPU, one Malbolge virtual machine per thread. The chain is:
+The repository is the machines and their evidence in one place. The reference interpreter runs the Malbolge machine. The VHDL ALU computes the same operations in hardware. The WhyML and Cryptol layers state the same operations as contracts. The Lean formalization states the processor, its invariants, and its determinism. The CUDA and PTX kernels run the same operations on the GPU, one Malbolge virtual machine per thread. The board compiler turns a plain-text board into a SPICE deck, a Verilog-A file, a structural netlist, or a KiCad netlist, with no dependency beyond awk. The chain is:
 
 $$\text{Interpreter} \;\to\; \text{ALU} \;\to\; \text{Contracts} \;\to\; \text{Formalization} \;\to\; \text{GPU}$$
 
-with each layer agreeing with the others on the same trit operations, the same tryte encoding, and the same step semantics.
+and, for the board:
+
+$$\text{board.txt} \;\to\; \text{eda.awk} \;\to\; \text{SPICE / Verilog-A / netlist / KiCad}$$
+
+with each layer agreeing with the others on the same operations, the same encodings, and the same semantics.
 
 ## At a glance
 
@@ -36,10 +41,14 @@ with each layer agreeing with the others on the same trit operations, the same t
 | Lean formalization | Trit, Tryte, MalbolgeProcessor, invariants, determinism, entropy-gated kernel |
 | GPU kernels | CUDA C++ and PTX assembly, sm_70, one 59049-tryte VM per thread |
 | GPU arithmetic | Elementwise tritAdd, tritSub, crazyOp, permuteTryte over packed trytes |
-| Board format | Plain-text, one component per line, whitespace-delimited |
+| Board format | Plain-text, one component per line, whitespace-delimited, `#` comments |
 | Board compiler | Zero-dependency POSIX awk: SPICE, Verilog-A, netlist, KiCad modes |
 | Board solver | Pure-awk MNA, DC and transient, nonlinear diodes by Newton-Raphson |
-| Implementation languages | C11, VHDL-2008, WhyML, Cryptol, Lean 4, CUDA C++, PTX |
+| Dual-circuit state machine | Idle, Calibrate, Run, Fault; mode as 2 bits; locked when running |
+| Dual-circuit layers | WhyML semantics, Cryptol contracts, SAW proof gates, VHDL RTL, Verilog-A analog, PSL properties |
+| Dual-circuit RTL | p4_controller, dual_circuit structural top, sram_bank, phase_calibrator |
+| SRAM write-cell | WhyML semantics, Cryptol contract, SAW equivalence, VHDL RTL |
+| Implementation languages | C11, VHDL-2008, WhyML, Cryptol, Lean 4, CUDA C++, PTX, POSIX awk, Verilog-A |
 | License | SNAPKITTY OPAQUE SOURCE LICENSE v1.0 |
 
 ## How it works
@@ -104,6 +113,51 @@ The processor is the tuple $(A, C, D, M, E, s)$: the three registers, the 59049-
 
 Each tryte is a 20-bit packed `uint32_t`. The CUDA kernels implement the same operations the Lean file defines: `tritAdd`, `tritSub`, `crazyOp`, `tryteToNat`, `natToTryte`, `incrementTryte`, `crazyTryte`, `decryptTryte`, `permuteTryte`, and `decodeInstruction`. The arithmetic kernel applies one operation elementwise across an array of packed trytes. The run kernel gives each thread its own 59049-tryte virtual machine and steps it deterministically. The PTX kernel implements the same operations in assembly for sm_70, with the crazy operation as a shift into the `0x00281A01` lookup table.
 
+## The board
+
+A board is a plain-text file. One component or directive per line, whitespace-delimited, with `#` or `*` comments. A reference designator, its nets, and its value or model:
+
+```
+# RC Low-Pass Filter + Diode Clipper
+V1   in   0     SIN(0 5 1k)
+R1   in   out   1k
+C1   out  0     100n
+D1   out  0     DMOD
+
+.model DMOD D(IS=1e-14 N=1)
+.tran 10u 5m
+```
+
+A node or net is the shared bus: fan-out is just multiple lines referencing the same net token. Ground is `0`. The extended format adds subcircuits (`.subckt` / `.ends`) and inline Verilog-A behavioral blocks (`.va` / `.endva`).
+
+The compiler is a single POSIX awk script, `eda.awk`, with no dependency beyond awk. It reads a board and emits one of four outputs, selected by `-v mode=`:
+
+| Mode | Output |
+| ---- | ------ |
+| `spice` (default) | A SPICE deck, with `.hdl` Verilog-A links, ground normalized to `0`, and ERC checks |
+| `veriloga` / `va` | A complete Verilog-A file: the `.va` behavioral modules plus a synthesized `board_top` module translating R, C, L, V, I, and X instances into KCL branch contributions, with SI-to-scientific unit conversion |
+| `netlist` | A component table, net-to-pin connectivity with fanout degree, and an aggregated BOM |
+| `kicad` | A KiCad S-expression netlist |
+
+The ERC flags floating nets (degree 1, excluding ground) to stderr. The solver, `mna.awk`, is a pure-awk Modified Nodal Analysis solver: it reads a board directly, solves DC operating points and Backward-Euler transient simulations, including nonlinear diodes by Newton-Raphson, and streams time-series node voltages to stdout. Blocks wire together over UNIX pipes: a signal generator feeds the RC filter feeds a plotter, and a named pipe feeds a downstream stage back into a summing stage for feedback loops.
+
+## The p4-dual-circuit
+
+The dual-circuit is a controller with a four-state mode machine: Idle, Calibrate, Run, Fault. Mode is 2 bits. The controller locks when it runs, and a write to SRAM is only enabled while locked and running. The structural top, `dual_circuit`, wires three blocks together: the `p4_controller`, the `sram_bank`, and the `phase_calibrator`, with two oscillator clocks feeding the calibrator.
+
+The layers agree on the same state machine:
+
+| Layer | Files | What it states |
+| ----- | ----- | -------------- |
+| WhyML semantics | `semantics/state.mlw`, `semantics/sram.mlw`, `semantics/oscillator.mlw`, `semantics/refinement.mlw` | The mode type, the state invariants, the SRAM read/write, the oscillator, and the refinement from the abstract state to the circuit |
+| Cryptol contracts | `cryptol/state.cry`, `cryptol/sram.cry`, `cryptol/circuit_contract.cry` | The executable state step, the SRAM model, and the circuit contract; run-implies-locked as a property |
+| SAW proof gates | `saw/digital_equivalence.saw`, `saw/sram_refinement.saw`, `saw/proof_gate.saw` | Yosys imports the RTL and verifies it against the Cryptol contracts; the proof gate runs both and prints the pass line |
+| VHDL RTL | `rtl/p4_controller.vhd`, `rtl/dual_circuit.vhd`, `rtl/sram_bank.vhd`, `rtl/phase_calibrator.vhd` | The synthesizable controller, the structural top, the SRAM bank, and the phase calibrator |
+| Verilog-A analog | `analog/oscillator.va`, `analog/relaxation.va`, `analog/parasitic_model.sp` | The oscillator and relaxation analog blocks, and the parasitic model |
+| Verification | `verification/psl/dual_circuit.psl`, `verification/pex/pex_rc_check.awk`, `verification/thermal/thermal_sweep.sp` | PSL properties on the controller, an RC delay and coupling budget checker, and a thermal sweep |
+
+The SRAM write-cell, in `board/sram-write-cell/`, is the same pattern at one-cell scale: a WhyML semantics, a Cryptol contract, a SAW equivalence, and a VHDL RTL, all stating the same write: if enabled, the result is the new value, else the old value.
+
 ## Layout
 
 | Path | Contents |
@@ -112,9 +166,9 @@ Each tryte is a 20-bit packed `uint32_t`. The CUDA kernels implement the same op
 | `lean/` | `MalbolgeProcessor.lean`: the original Malbolge processor formalization, reproduced from photos; `MalbolgeProcessorRoot.lean`: the Malbolge processor formalization, verbatim; `MalbolgePTXKernel.lean`: the PTX kernel specification, verbatim |
 | `gpu/` | `malbolge_ternary.cu`: CUDA kernels for the ternary tryte operations and the deterministic Malbolge processor step; `malbolge_ternary.ptx`: the PTX assembly kernel for the same operations |
 | `gpu/tests/` | `verify_cuda_host.c`: host-side C verification of the CUDA device functions against the Lean definitions, no GPU needed |
-| `board/` | The actual board: plain-text circuit board format and a zero-dependency POSIX awk EDA compiler. `BOARD.md` is the full document. `eda.awk` compiles a board into SPICE, Verilog-A, netlist, or KiCad. `mna.awk` is a pure-awk MNA circuit solver. `examples/` holds board files. |
-| `board/p4-dual-circuit/` | A dual-circuit project: WhyML semantics, Cryptol contracts, SAW proof gates, VHDL RTL, Verilog-A analog models, PSL verification properties, and parasitic/thermal checks. |
-| `board/sram-write-cell/` | The SRAM write-cell: WhyML semantics, Cryptol contract, SAW equivalence, and VHDL RTL. |
+| `board/` | The actual board: `BOARD.md` is the full document; `eda.awk` is the full compiler; `eda-basic.awk` is the first version; `mna.awk` is the MNA solver; `examples/` holds board files |
+| `board/p4-dual-circuit/` | The dual-circuit project: `semantics/` (WhyML), `cryptol/` (Cryptol), `saw/` (SAW proof gates), `rtl/` (VHDL), `analog/` (Verilog-A and SPICE), `verification/` (PSL, PEX checker, thermal sweep) |
+| `board/sram-write-cell/` | The SRAM write-cell: WhyML semantics, Cryptol contract, SAW equivalence, VHDL RTL |
 | `STATUS.md` | Verification record |
 
 ## Build and run
@@ -152,6 +206,27 @@ Check the CUDA device functions on the host, without a GPU:
 ```sh
 cc -std=c11 -O2 -Wall -Wextra gpu/tests/verify_cuda_host.c -o verify_cuda_host
 ./verify_cuda_host
+```
+
+Compile a board to a SPICE deck, or to Verilog-A, a netlist, or KiCad:
+
+```sh
+awk -v mode=spice -f board/eda.awk board/examples/board.txt
+awk -v mode=veriloga -f board/eda.awk board/examples/board-hybrid.txt > board.va
+awk -v mode=netlist -f board/eda.awk board/examples/board.txt
+awk -v mode=kicad -f board/eda.awk board/examples/board.txt > board.net
+```
+
+Solve a board directly, DC and transient, with no SPICE installed:
+
+```sh
+awk -f board/mna.awk board/examples/board.txt | column -t
+```
+
+Pipe a board into ngspice:
+
+```sh
+awk -v mode=spice -f board/eda.awk board/examples/board.txt | ngspice -b -
 ```
 
 ## License

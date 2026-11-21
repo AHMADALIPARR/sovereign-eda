@@ -3,11 +3,11 @@
 Hash-chained manifest of this tree. HEAD = SHA-256 of the
 concatenated per-file hex digests, in listed order.
 
-HEAD dd9a0661aedaa3281ee718cbd0ce8c3a779fbd304885d15a672600b83ed8f226
+HEAD 7989b4e4095d609d41c8de5194dcc0e0fe0b7aed27589c7f5a5426fe990a994a
 
 282b870f6cf3f786e2255b72750bdd04874e418706bb4267db33adac12f8ca0b  .gitignore
 6f26b3c4a6017597ef0a302b31125dbb9848b77129d598b503ad33818acbf8a6  LICENSE
-d750d56dc5c13d093f3a9dc2cdcc3aaaa1d35c3feae73e916cfba9d998e3c65e  README.md
+1f484fd781e5f7a731612201fd4c2354622da76155f395e2f9d008966f6bd54a  README.md
 8bbe6b0a023def8f6c5bcbfc1374c9c3f31ea40c158249c5f94f8e5ec5413e1e  STATUS.md
 6cc0e9caea63f5a3b5126bbee596971ce6881a5cdfc94973b44051025e5a16db  board/BOARD.md
 7cc4ea6cbae02e6fb1d17e643a5c2ee0762a61131f608bec575e4acec05630d9  board/eda-basic.awk
