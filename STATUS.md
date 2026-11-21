@@ -70,6 +70,33 @@
   by the 10-minute timeout, not by an error. A bigger machine
   (or a longer run) may complete it.
 
+## Lean reproduction (2026-11-21, from the owner's screen photos)
+
+The owner's Lean 4 Malbolge formalization lives deep in a 300,000-line
+repo that cannot be read into this workspace, so he sent screen photos
+and ordered the files reproduced from them (`lean/`). The reproduction
+is labeled in-file: what was clearly readable is his code, what was
+cut off or unreadable is marked RECONSTRUCTED or CUT OFF, and it is
+not presented as his verbatim original.
+
+- `lean/MalbolgePTXKernel.lean`: checks clean under Lean 4.9.0 core
+  (exit 0, no errors). PTXKernelConfig (RTX 3080), ptxTritAdd,
+  ptxMalbolgeKernel, resourceAnalysis, three True theorems.
+- `lean/MalbolgeProcessor.lean`: the core definitions (Trit, tritAdd,
+  tritSub, crazyOp, Tryte, conversions) elaborate under Lean 4.9.0
+  core and all five #eval checks pass (mod-3 add/sub, standard crazy
+  table, natToTryte/tryteToNat roundtrip, wrap at 59049). The file as
+  a whole cannot be fully checked on this VM: it needs Batteries
+  (Array.ofList, Array.length, Array.rotateLeft, Std.HashSet) and
+  Mathlib (Real.log), neither built here. Two open questions for the
+  owner: (1) the photos were ambiguous on five crazyOp entries — the
+  standard table from his own repo oracle was used; (2) `deriving
+  Repr` on MalbolgeProcessor failed here because MalbolgeMemory is a
+  plain def — it may need @[reducible] or may elaborate fine in his
+  full environment. The invariant proof scripts are cut off in the
+  photos and are reproduced as far as visible, with `sorry` marking
+  the missing tails.
+
 ## Scope
 
 Phase 1 is the combinational ALU only. The reference interpreter is
