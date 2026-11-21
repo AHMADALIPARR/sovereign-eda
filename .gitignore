@@ -3,6 +3,7 @@ malbolge
 malbolge-circuit/reference/malbolge-original
 malbolge-circuit/build/
 malbolge-circuit/work-obj08.cf
+gpu/tests/verify_cuda_host
 *.o
 *.vo
 *.vok
