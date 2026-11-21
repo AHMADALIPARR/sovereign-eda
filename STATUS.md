@@ -17,16 +17,47 @@
 - GHDL analyze (`ghdl -a --std=08 rtl/malbolge_alu.vhd`): exit 0,
   no errors.
 
-## Not verified on this VM
+## Toolchain installed on this VM for the markdown's commands
 
-- `make whyml` (Why3 proof of `semantics/MalbolgeCore.mlw`): Why3
-  is not installed here.
-- `make analyze` full target and `make prove` (Yosys GHDL plugin
-  synthesis plus SAW `w4` equivalence): Yosys and SAW are not
-  installed here. The SAW script is a real target script, not a
-  discharge.
-- Cryptol (`cryptol/MalbolgeCore.cry`): Cryptol is not installed
-  here, so the contract was read, not executed.
+- Why3 1.6.0, Yosys 0.33, yosys-plugin-ghdl, ghdl-gcc 4.1.0
+  (all via apt), SAW 1.5 with bundled solvers
+  (`~/workspace/.tools/saw-1.5-ubuntu-24.04-X64-with-solvers/`).
+
+## `make whyml`: FAILS
+
+- Why3 1.6.0 reports `semantics/MalbolgeCore.mlw`, line 23:
+  `unbound function or predicate symbol '(/)'`. The `/` infix
+  operator is not in scope for integers in Why3 1.6.0 (verified
+  with a minimal file: `/` fails, `div` works).
+- The file uses `/` in `rotate`, `decode`, `inc`, and `crazy10`.
+- Fix offered, not installed: replace `/` with `div`
+  (e.g. `div x 3` instead of `x / 3`). The file was not edited.
+
+## `make analyze`: PASSES
+
+- After the toolchain install above, the full target runs:
+  GHDL analyzes the VHDL, Yosys (with the ghdl plugin) synthesizes
+  the ALU, CHECK pass reports 0 problems, and it writes
+  `build/malbolge_alu.json` (155,906 bytes, 156 cells:
+  23 mux, 20 logic_not, 20 eq, 20 pmux, 20 modfloor, 18 div,
+  11 mul, 11 add, 10 reduce_or, 2 le, 1 and).
+
+## `make prove`: FAILS (two blockers)
+
+- Blocker 1, paths: SAW resolves the script's relative paths
+  (`cryptol/MalbolgeCore.cry`, `build/malbolge_alu.json`) relative
+  to the script's own directory (`saw/`), so neither is found when
+  run via `make prove` from the project root. (Verified: with the
+  script copied to the project root, the Cryptol import resolves.)
+- Blocker 2, `$modfloor` cells: SAW 1.5 `yosys_import` cannot
+  handle the 20 `$modfloor` cells in the Yosys JSON (they come from
+  the VHDL `mod` operations). Error: `Encountered a cell "\92"
+  with type "$modfloor", but could not find a submodule named
+  "$modfloor"`. SAW treats unknown cell types as submodule
+  instantiations. This blocks the equivalence check itself.
+- Cryptol: SAW 1.5 bundles Cryptol, and the `.cry` contract file
+  loads once paths resolve, but the equivalence was not discharged
+  because of blocker 2.
 
 ## Scope
 
