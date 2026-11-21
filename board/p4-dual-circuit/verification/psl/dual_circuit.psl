@@ -1,0 +1,8 @@
+-- PSL Verification Properties for p4_controller / dual_circuit
+vunit p4_psl(p4_controller(rtl)) {
+    default clock is rising_edge(clk);
+
+    assert always (mode_out = "10" -> locked = '1') abort (rst_n = '0');
+    assert always (sram_we_en = '1' -> (mode_out = "10" and locked = '1')) abort (rst_n = '0');
+    assert always (mode_out = "11" -> (locked = '0' and sram_we_en = '0'));
+}

@@ -1,0 +1,5 @@
+type Word = [8]
+
+writeCell : Word -> Word -> Bit -> Word
+writeCell oldValue newValue enable =
+  if enable then newValue else oldValue

@@ -1,0 +1,29 @@
+module CircuitContract where
+
+import State
+import SRAM
+
+type DualCircuit = {
+    ctrl : CtrlState,
+    sram : SRAMState
+}
+
+init_circuit : DualCircuit
+init_circuit = {
+    ctrl = init_state,
+    sram = init_sram
+}
+
+dual_step : DualCircuit -> Bit -> [8] -> Bit -> Addr -> Word -> DualCircuit
+dual_step dc start err we_req addr din = {
+    ctrl = ctrl',
+    sram = sram'
+}
+where
+    ctrl' = step_state dc.ctrl start err
+    we_gated = we_req && (ctrl'.mode == RUN) && ctrl'.locked
+    sram' = sram_cycle dc.sram we_gated addr din
+
+property sram_write_protected dc start err we_req addr din =
+    (ctrl'.mode != RUN) ==> ((dual_step dc start err we_req addr din).sram.mem == dc.sram.mem)
+    where ctrl' = step_state dc.ctrl start err

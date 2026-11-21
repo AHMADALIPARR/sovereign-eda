@@ -1,0 +1,20 @@
+module SRAMSemantics
+  use int.Int
+
+  predicate byte (x: int) =
+    0 <= x /\ x < 256
+
+  let function write_cell
+    (old_value: int)
+    (new_value: int)
+    (enable: bool) : int
+    requires { byte old_value }
+    requires { byte new_value }
+    ensures  { byte result }
+    ensures  {
+      if enable then result = new_value
+      else result = old_value
+    }
+  =
+    if enable then new_value else old_value
+end

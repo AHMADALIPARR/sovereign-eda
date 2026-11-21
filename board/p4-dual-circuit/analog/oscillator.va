@@ -1,0 +1,24 @@
+`include "constants.vams"
+`include "disciplines.vams"
+
+module oscillator(vdd, vss, vctrl, clk_out);
+    inout vdd, vss, vctrl, clk_out;
+    electrical vdd, vss, vctrl, clk_out;
+
+    parameter real f0   = 100.0e6;
+    parameter real kvco = 20.0e6;
+    parameter real trf  = 50.0e-12;
+
+    real freq, phase, vout;
+
+    analog begin
+        freq = f0 + kvco * (V(vctrl, vss) - 0.9);
+        if (freq < 1.0e6) freq = 1.0e6;
+
+        phase = idtmod(freq, 0.0, 1.0, -0.5);
+        @(cross(phase - 0.0, 0) or cross(phase - 0.5, 0)) ;
+
+        vout = (phase >= 0.0) ? V(vdd, vss) : 0.0;
+        V(clk_out, vss) <+ transition(vout, 0.0, trf, trf);
+    end
+endmodule

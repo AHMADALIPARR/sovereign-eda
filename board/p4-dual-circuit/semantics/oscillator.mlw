@@ -1,0 +1,22 @@
+module Oscillator
+  use int.Int
+
+  type osc_state = {
+    v_cap     : int;  (* scaled millivolts *)
+    out_clk   : bool;
+    cal_code  : int;  (* 0..255 *)
+    period_ps : int;
+  }
+
+  predicate inv (o: osc_state) =
+    0 <= o.cal_code <= 255 /\
+    0 <= o.v_cap <= 1800 /\
+    1000 <= o.period_ps <= 20000
+
+  function nominal_period (cal: int) : int =
+    10000 - (cal - 128) * 30
+
+  lemma nominal_period_bounds :
+    forall cal: int.
+      0 <= cal <= 255 -> 1000 <= nominal_period cal <= 20000
+end

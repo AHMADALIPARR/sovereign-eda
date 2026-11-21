@@ -1,0 +1,6 @@
+import "../cryptol/sram.cry";
+
+let prove_sram_refinement = do {
+    print "Proving SRAM.write_read_match...";
+    prove_print z3 {{ SRAM::write_read_match }};
+};

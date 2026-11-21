@@ -1,0 +1,26 @@
+module SRAM where
+
+type Addr = [8]
+type Word = [32]
+type Mem  = [256]Word
+
+type SRAMState = {
+    mem  : Mem,
+    dout : Word
+}
+
+init_sram : SRAMState
+init_sram = {
+    mem  = zero,
+    dout = 0
+}
+
+sram_cycle : SRAMState -> Bit -> Addr -> Word -> SRAMState
+sram_cycle s we addr din = {
+    mem  = mem',
+    dout = mem' @ addr
+}
+where mem' = if we then update s.mem addr din else s.mem
+
+property write_read_match s addr din =
+    (sram_cycle s True addr din).dout == din

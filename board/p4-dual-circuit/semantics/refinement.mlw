@@ -1,0 +1,26 @@
+module Refinement
+  use int.Int
+  use State
+  use SRAM
+  use Oscillator
+
+  type system = {
+    ctrl : State.t;
+    mem  : SRAM.t;
+    osc  : Oscillator.osc_state;
+  }
+
+  predicate sys_inv (sys: system) =
+    State.inv sys.ctrl /\
+    SRAM.inv sys.mem /\
+    Oscillator.inv sys.osc /\
+    sys.osc.cal_code = sys.ctrl.cal_word
+
+  predicate sram_access_safe (sys: system) (we: bool) =
+    we -> (sys.ctrl.mode = State.Run /\ sys.ctrl.locked = true)
+
+  lemma lock_implies_calibrated_osc :
+    forall sys: system.
+      sys_inv sys -> sys.ctrl.mode = State.Run ->
+      1000 <= Oscillator.nominal_period sys.osc.cal_code <= 20000
+end

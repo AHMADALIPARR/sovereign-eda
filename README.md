@@ -112,7 +112,9 @@ Each tryte is a 20-bit packed `uint32_t`. The CUDA kernels implement the same op
 | `lean/` | `MalbolgeProcessor.lean`: the original Malbolge processor formalization, reproduced from photos; `MalbolgeProcessorRoot.lean`: the Malbolge processor formalization, verbatim; `MalbolgePTXKernel.lean`: the PTX kernel specification, verbatim |
 | `gpu/` | `malbolge_ternary.cu`: CUDA kernels for the ternary tryte operations and the deterministic Malbolge processor step; `malbolge_ternary.ptx`: the PTX assembly kernel for the same operations |
 | `gpu/tests/` | `verify_cuda_host.c`: host-side C verification of the CUDA device functions against the Lean definitions, no GPU needed |
-| `board/` | The actual board: plain-text circuit board format and a zero-dependency POSIX awk EDA compiler. `BOARD.md` is the full document. `eda.awk` compiles a board into SPICE, Verilog-A, netlist, or KiCad. `mna.awk` is a pure-awk MNA circuit solver. `pex_rc_check.awk` is an RC delay and coupling budget checker. `examples/` holds board files. |
+| `board/` | The actual board: plain-text circuit board format and a zero-dependency POSIX awk EDA compiler. `BOARD.md` is the full document. `eda.awk` compiles a board into SPICE, Verilog-A, netlist, or KiCad. `mna.awk` is a pure-awk MNA circuit solver. `examples/` holds board files. |
+| `board/p4-dual-circuit/` | A dual-circuit project: WhyML semantics, Cryptol contracts, SAW proof gates, VHDL RTL, Verilog-A analog models, PSL verification properties, and parasitic/thermal checks. |
+| `board/sram-write-cell/` | The SRAM write-cell: WhyML semantics, Cryptol contract, SAW equivalence, and VHDL RTL. |
 | `STATUS.md` | Verification record |
 
 ## Build and run

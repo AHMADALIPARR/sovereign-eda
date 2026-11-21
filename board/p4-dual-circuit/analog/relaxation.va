@@ -1,0 +1,31 @@
+`include "constants.vams"
+`include "disciplines.vams"
+
+module relaxation(vdd, vss, iref, cap_node, clk_out);
+    inout vdd, vss, iref, cap_node, clk_out;
+    electrical vdd, vss, iref, cap_node, clk_out;
+
+    parameter real c_int = 1.0e-12;
+    parameter real v_hi  = 1.2;
+    parameter real v_lo  = 0.4;
+    parameter real r_on  = 50.0;
+    parameter real trf   = 40.0e-12;
+
+    integer disch;
+    real vc;
+
+    analog begin
+        @(initial_step) disch = 0;
+
+        vc = V(cap_node, vss);
+        @(cross(vc - v_hi, +1)) disch = 1;
+        @(cross(vc - v_lo, -1)) disch = 0;
+
+        I(cap_node, vss) <+ c_int * ddt(V(cap_node, vss));
+        I(cap_node, vss) <+ -I(iref, vss);
+        if (disch == 1)
+            I(cap_node, vss) <+ V(cap_node, vss) / r_on;
+
+        V(clk_out, vss) <+ transition(disch ? V(vdd, vss) : 0.0, 0.0, trf, trf);
+    end
+endmodule

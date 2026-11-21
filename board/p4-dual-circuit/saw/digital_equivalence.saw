@@ -1,0 +1,14 @@
+import "../cryptol/state.cry";
+import "../cryptol/circuit_contract.cry";
+
+let prove_state_invariants = do {
+    print "Proving State.run_implies_locked...";
+    prove_print z3 {{ State::run_implies_locked }};
+
+    print "Proving CircuitContract.sram_write_protected...";
+    prove_print z3 {{ CircuitContract::sram_write_protected }};
+};
+
+// Equivalence hook for synthesized AIGER / Yosys netlist of p4_controller
+// let rtl_aig <- read_aig "p4_controller.aig";
+// prove_print abc {{ \s start err -> ... }};

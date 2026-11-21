@@ -1,0 +1,49 @@
+module State where
+
+type Mode = [2]
+IDLE      = 0 : Mode
+CALIBRATE = 1 : Mode
+RUN       = 2 : Mode
+FAULT     = 3 : Mode
+
+type CtrlState = {
+    mode      : Mode,
+    phase_err : [8],
+    cal_word  : [8],
+    locked    : Bit
+}
+
+init_state : CtrlState
+init_state = {
+    mode      = IDLE,
+    phase_err = 0,
+    cal_word  = 128,
+    locked    = False
+}
+
+abs8 : [8] -> [8]
+abs8 x = if (x ! 0) then -x else x
+
+step_state : CtrlState -> Bit -> [8] -> CtrlState
+step_state s start err =
+    if s.mode == FAULT then s
+    else if s.mode == IDLE then
+        if start then { mode = CALIBRATE, phase_err = err, cal_word = s.cal_word, locked = False }
+        else s
+    else if s.mode == CALIBRATE then
+        if abs8 err <= 2 then
+            { mode = RUN, phase_err = err, cal_word = s.cal_word, locked = True }
+        else
+            { mode = CALIBRATE, phase_err = err, cal_word = next_cal, locked = False }
+            where next_cal =
+                if ~(err ! 0) && err != 0 then (if s.cal_word > 0 then s.cal_word - 1 else 0)
+                else (if s.cal_word < 255 then s.cal_word + 1 else 255)
+    else // RUN
+        if abs8 err <= 4 then
+            { mode = RUN, phase_err = err, cal_word = s.cal_word, locked = True }
+        else
+            { mode = CALIBRATE, phase_err = err, cal_word = s.cal_word, locked = False }
+
+property run_implies_locked s start err =
+    (s'.mode == RUN) ==> s'.locked
+    where s' = step_state s start err

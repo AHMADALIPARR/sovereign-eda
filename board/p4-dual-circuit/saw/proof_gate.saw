@@ -1,0 +1,10 @@
+include "digital_equivalence.saw";
+include "sram_refinement.saw";
+
+let main = do {
+    prove_state_invariants;
+    prove_sram_refinement;
+    print "ALL PROOF GATES PASSED.";
+};
+
+main;

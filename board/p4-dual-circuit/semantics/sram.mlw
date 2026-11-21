@@ -1,0 +1,41 @@
+module SRAM
+  use int.Int
+  use map.Map
+
+  constant depth : int = 256
+
+  type mem = map int int
+
+  type t = {
+    data : mem;
+    we   : bool;
+    addr : int;
+    din  : int;
+    dout : int;
+  }
+
+  predicate valid_addr (a: int) = 0 <= a < depth
+
+  predicate inv (m: t) =
+    valid_addr m.addr /\
+    0 <= m.din < 4294967296 /\
+    0 <= m.dout < 4294967296
+
+  function write_mem (m: mem) (a: int) (v: int) : mem =
+    Map.set m a v
+
+  function read_mem (m: mem) (a: int) : int =
+    Map.get m a
+
+  function cycle (m: t) (we: bool) (a: int) (v: int) : t
+    requires { valid_addr a /\ 0 <= v < 4294967296 }
+  =
+    let next_data = if we then write_mem m.data a v else m.data in
+    let next_dout = read_mem next_data a in
+    { data = next_data; we = we; addr = a; din = v; dout = next_dout }
+
+  lemma write_then_read :
+    forall m: t, a: int, v: int.
+      valid_addr a -> 0 <= v < 4294967296 ->
+      (cycle m true a v).dout = v
+end

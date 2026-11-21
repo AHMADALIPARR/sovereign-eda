@@ -1,0 +1,47 @@
+module State
+  use int.Int
+
+  type mode = Idle | Calibrate | Run | Fault
+
+  type t = {
+    mode : mode;
+    phase_err : int;
+    cal_word : int;
+    locked : bool;
+  }
+
+  predicate inv (s: t) =
+    0 <= s.cal_word <= 255 /\
+    -128 <= s.phase_err <= 127 /\
+    (s.mode = Run -> s.locked = true) /\
+    (s.mode = Fault -> s.locked = false)
+
+  function init : t =
+    { mode = Idle; phase_err = 0; cal_word = 128; locked = false }
+
+  lemma init_inv : inv init
+
+  function step (s: t) (start: bool) (err: int) : t =
+    if s.mode = Fault then s
+    else if not (-128 <= err <= 127) then
+      { mode = Fault; phase_err = 0; cal_word = s.cal_word; locked = false }
+    else match s.mode with
+      | Idle ->
+          if start then { mode = Calibrate; phase_err = err; cal_word = s.cal_word; locked = false }
+          else s
+      | Calibrate ->
+          if -2 <= err <= 2 then { mode = Run; phase_err = err; cal_word = s.cal_word; locked = true }
+          else
+            let next_cal = if err > 0 then (if s.cal_word > 0 then s.cal_word - 1 else 0)
+                           else (if s.cal_word < 255 then s.cal_word + 1 else 255) in
+            { mode = Calibrate; phase_err = err; cal_word = next_cal; locked = false }
+      | Run ->
+          if -4 <= err <= 4 then { mode = Run; phase_err = err; cal_word = s.cal_word; locked = true }
+          else { mode = Calibrate; phase_err = err; cal_word = s.cal_word; locked = false }
+      | Fault -> s
+    end
+
+  lemma step_preserves_inv :
+    forall s: t, start: bool, err: int.
+      inv s -> inv (step s start err)
+end
