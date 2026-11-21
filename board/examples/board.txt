@@ -1,0 +1,8 @@
+# RC Low-Pass Filter + Diode Clipper
+V1   in   0     SIN(0 5 1k)
+R1   in   out   1k
+C1   out  0     100n
+D1   out  0     DMOD
+
+.model DMOD D(IS=1e-14 N=1)
+.tran 10u 5m

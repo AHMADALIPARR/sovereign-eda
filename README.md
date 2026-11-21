@@ -36,6 +36,9 @@ with each layer agreeing with the others on the same trit operations, the same t
 | Lean formalization | Trit, Tryte, MalbolgeProcessor, invariants, determinism, entropy-gated kernel |
 | GPU kernels | CUDA C++ and PTX assembly, sm_70, one 59049-tryte VM per thread |
 | GPU arithmetic | Elementwise tritAdd, tritSub, crazyOp, permuteTryte over packed trytes |
+| Board format | Plain-text, one component per line, whitespace-delimited |
+| Board compiler | Zero-dependency POSIX awk: SPICE, Verilog-A, netlist, KiCad modes |
+| Board solver | Pure-awk MNA, DC and transient, nonlinear diodes by Newton-Raphson |
 | Implementation languages | C11, VHDL-2008, WhyML, Cryptol, Lean 4, CUDA C++, PTX |
 | License | SNAPKITTY OPAQUE SOURCE LICENSE v1.0 |
 
@@ -106,9 +109,10 @@ Each tryte is a 20-bit packed `uint32_t`. The CUDA kernels implement the same op
 | Path | Contents |
 | ---- | -------- |
 | `malbolge-circuit/` | The Malbolge circuit project: reference interpreter, VHDL ALU, WhyML, Cryptol, SAW, tests, docs, examples |
-| `lean/` | `MalbolgeProcessorRoot.lean`: the Malbolge processor formalization; `MalbolgePTXKernel.lean`: the PTX kernel specification |
+| `lean/` | `MalbolgeProcessor.lean`: the original Malbolge processor formalization, reproduced from photos; `MalbolgeProcessorRoot.lean`: the Malbolge processor formalization, verbatim; `MalbolgePTXKernel.lean`: the PTX kernel specification, verbatim |
 | `gpu/` | `malbolge_ternary.cu`: CUDA kernels for the ternary tryte operations and the deterministic Malbolge processor step; `malbolge_ternary.ptx`: the PTX assembly kernel for the same operations |
 | `gpu/tests/` | `verify_cuda_host.c`: host-side C verification of the CUDA device functions against the Lean definitions, no GPU needed |
+| `board/` | The actual board: plain-text circuit board format and a zero-dependency POSIX awk EDA compiler. `BOARD.md` is the full document. `eda.awk` compiles a board into SPICE, Verilog-A, netlist, or KiCad. `mna.awk` is a pure-awk MNA circuit solver. `pex_rc_check.awk` is an RC delay and coupling budget checker. `examples/` holds board files. |
 | `STATUS.md` | Verification record |
 
 ## Build and run

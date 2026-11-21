@@ -1,0 +1,12 @@
+# Hybrid Analog Board: RC Filter + Behavioral Nonlinear Memristive Load
+V1   in   0     5.0
+R1   in   out   1k
+C1   out  0     100n
+X1   out  0     soft_clipper  R0=2k  Vth=1.2
+
+# Inline Verilog-A behavioral module
+.va soft_clipper p n R0=1k Vth=0.7
+    I(p, n) <+ (V(p, n) / R0) + 1e-6 * sinh(V(p, n) / Vth);
+.endva
+
+.tran 10u 5m
