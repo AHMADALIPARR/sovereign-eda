@@ -117,3 +117,27 @@ The reference interpreter has the known reference-specific ambiguity
 for nonprintable instructions and for initialization with under two
 source instructions; these are specified in
 `malbolge-circuit/docs/SEMANTICS.md`, not silently assumed.
+
+## Lean ProcessorRoot (verbatim, 2026-11-21)
+
+- `lean/MalbolgeProcessorRoot.lean` is the owner's verbatim pasted file
+  (DEED-MALBOLGE_PROCESSOR_ROOT-073, 443 lines, zero `sorry` in the
+  text). It replaces the earlier photo reproduction
+  `lean/MalbolgeProcessor.lean`, which is removed: the verbatim file
+  corrects it in three places — the crazy table is the owner's own
+  variant (not the standard Malbolge table), `natToTryte` uses plain
+  `(n / 3 ^ i) % 3` with `.toArray`, and `MalbolgeMemory` is an
+  `abbrev` (which is why `deriving Repr` and `.size` elaborate).
+- Check on this VM: the file does NOT compile under core Lean alone.
+  Lean 4.9.0 core reports 20+ errors; Lean 4.21.0 core reports 10.
+  The failures are missing identifiers that live in Batteries/Mathlib
+  or a newer Lean (`Array.foldl_eq_foldl_toList`,
+  `Array.mem_toList_setIfInBounds`, `Array.size_set!`), a `dedupNat`
+  termination failure (structural recursion cannot see through
+  `List.filter`), and a `mem_set!_width` proof mismatch. The file was
+  committed verbatim as sent; none of it was "fixed". Full checking
+  needs the owner's environment (his 300k-line repo toolchain).
+- Note: `natToTryte` (little-endian, `(n / 3 ^ i) % 3`) and
+  `tryteToNat` (big-endian fold) are not inverses of each other as
+  written; no theorem in the file asserts the roundtrip. Flagged to
+  the owner, not changed.
