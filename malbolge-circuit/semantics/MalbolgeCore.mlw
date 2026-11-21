@@ -1,0 +1,70 @@
+module MalbolgeCore
+  use int.Int
+  use int.ComputerDivision
+
+  let constant modulus : int = 59049
+  predicate word (x:int) = 0 <= x < modulus
+  predicate trit (x:int) = 0 <= x < 3
+
+  let function crazy_trit (a:int) (d:int) : int
+    requires { trit a /\ trit d }
+    ensures  { trit result }
+    ensures  { d = 0 -> result = (if a = 0 then 1 else 0) }
+    ensures  { d = 1 -> result = (if a = 0 then 1 else if a = 1 then 0 else 2) }
+    ensures  { d = 2 -> result = (if a = 2 then 1 else 2) }
+  = if d = 0 then (if a = 0 then 1 else 0)
+    else if d = 1 then (if a = 0 then 1 else if a = 1 then 0 else 2)
+    else (if a = 2 then 1 else 2)
+
+  let function rotate (x:int) : int
+    requires { word x }
+    ensures  { word result }
+    ensures  { result = x / 3 + (x mod 3) * 19683 }
+  = x / 3 + (x mod 3) * 19683
+
+  let function decode (c:int) (cell:int) : int
+    requires { word c /\ word cell }
+    ensures  { 0 <= result < 94 }
+  = (c + cell) mod 94
+
+  let function inc (x:int) : int
+    requires { word x }
+    ensures  { word result }
+    ensures  { result = (x + 1) mod modulus }
+  = (x + 1) mod modulus
+
+  let function crazy10 (a:int) (d:int) : int
+    requires { word a /\ word d }
+    ensures  { word result }
+  =
+    let a0 = a mod 3 in
+    let d0 = d mod 3 in
+    let a1 = (a / 3) mod 3 in
+    let d1 = (d / 3) mod 3 in
+    let a2 = (a / 9) mod 3 in
+    let d2 = (d / 9) mod 3 in
+    let a3 = (a / 27) mod 3 in
+    let d3 = (d / 27) mod 3 in
+    let a4 = (a / 81) mod 3 in
+    let d4 = (d / 81) mod 3 in
+    let a5 = (a / 243) mod 3 in
+    let d5 = (d / 243) mod 3 in
+    let a6 = (a / 729) mod 3 in
+    let d6 = (d / 729) mod 3 in
+    let a7 = (a / 2187) mod 3 in
+    let d7 = (d / 2187) mod 3 in
+    let a8 = (a / 6561) mod 3 in
+    let d8 = (d / 6561) mod 3 in
+    let a9 = (a / 19683) mod 3 in
+    let d9 = (d / 19683) mod 3 in
+      crazy_trit a0 d0
+    + 3 * crazy_trit a1 d1
+    + 9 * crazy_trit a2 d2
+    + 27 * crazy_trit a3 d3
+    + 81 * crazy_trit a4 d4
+    + 243 * crazy_trit a5 d5
+    + 729 * crazy_trit a6 d6
+    + 2187 * crazy_trit a7 d7
+    + 6561 * crazy_trit a8 d8
+    + 19683 * crazy_trit a9 d9
+end

@@ -1,0 +1,10 @@
+# Build outputs
+malbolge
+malbolge-circuit/reference/malbolge-original
+malbolge-circuit/build/
+malbolge-circuit/work-obj08.cf
+*.o
+*.vo
+*.vok
+*.vos
+*.glob

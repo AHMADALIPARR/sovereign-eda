@@ -1,0 +1,32 @@
+module MalbolgeCore where
+
+// Use 16-bit values to represent the 10-trit domain 0..59048.
+type Word = [16]
+validWord : Word -> Bit
+validWord x = x < 59049
+
+crazyTrit : Word -> Word -> Word
+crazyTrit a d =
+  if d == 0 then (if a == 0 then 1 else 0)
+  else if d == 1 then (if a == 0 then 1 else if a == 1 then 0 else 2)
+  else (if a == 2 then 1 else 2)
+
+// Recursive digit processing, matching the ten place values of the WhyML model.
+crazySteps : [32] -> Word -> Word -> Word -> Word -> Word
+crazySteps n a d factor acc =
+  if n == 0 then acc
+  else crazySteps (n-1) (a / 3) (d / 3) (factor * 3)
+       (acc + factor * crazyTrit (a % 3) (d % 3))
+
+crazyWord : Word -> Word -> Word
+crazyWord a d = crazySteps 10 a d 1 0
+
+rotateWord : Word -> Word
+rotateWord x = (x / 3) + (x % 3) * 19683
+
+aluSpec : {a : Word, d : Word} -> {crazy : Word, rotate : Word, valid : [1]}
+aluSpec inp =
+  if validWord inp.a && validWord inp.d then
+    {crazy = crazyWord inp.a inp.d, rotate = rotateWord inp.d, valid = 1}
+  else
+    {crazy = 0, rotate = 0, valid = 0}

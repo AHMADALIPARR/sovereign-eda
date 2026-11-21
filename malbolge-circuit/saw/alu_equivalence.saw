@@ -1,0 +1,5 @@
+// Requires GHDL+Yosys with the ghdl plugin; see Makefile.
+enable_experimental;
+import "cryptol/MalbolgeCore.cry";
+m <- yosys_import "build/malbolge_alu.json";
+alu_correct <- yosys_verify {{ m.malbolge_alu }} [] {{ aluSpec }} [] w4;
