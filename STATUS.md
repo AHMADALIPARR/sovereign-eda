@@ -258,7 +258,7 @@ bfe version is 8. Hand-counted dynamic instructions per tryte
 consistent with the measured CPU proxy. Real GPU timing is a
 Jetson measurement, not this number.
 
-## NASA-grade evidence layer (2026-11-21, local only, not pushed)
+## NASA-grade evidence layer (2026-11-21, pushed as 6003b27)
 On the owner's order ("Make this repo follow every guideline on this
 list if it failed it never gets pushed"), a NASA evidence layer was
 added beside the existing tree. No existing file was moved. The layer
@@ -299,14 +299,15 @@ checklist. Requirements, Traceability, Safety, Configuration, and
 Formal checks are DONE; Build, Static analysis, Testing, Review,
 and Release approval are NOT DONE. 25 checks pass. The only
 remaining gate blockers are CUDA compile and PTX assembly, which
-need nvcc and ptxas on a machine that has them. The tree is not
-pushed and no baseline is declared. What closes the gate: compile
+need nvcc and ptxas on a machine that has them. Pushed to
+AHMADALIPARR/sovereign-eda as 6003b27 on 2026-11-21; no baseline is
+declared. What closes the gate: compile
 with nvcc and assemble with ptxas on a machine that has them, run
 the kernels on the Jetson for timing, and record a release approval.
 Gate log: reports/test-results/gate-2026-11-21.log. Readiness report:
 reports/release-readiness/release-readiness.md.
 
-## SAW wiring fixes (2026-11-21, local only, not pushed)
+## SAW wiring fixes (2026-11-21, pushed as 6003b27)
 On the owner's order, the three broken SAW wirings were fixed and the
 whole chain was run to show what passes and what is broken.
 

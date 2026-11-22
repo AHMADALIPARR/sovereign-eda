@@ -3,7 +3,7 @@
 Hash-chained manifest of this tree. HEAD = SHA-256 of the
 concatenated per-file hex digests, in listed order.
 
-HEAD 944d5e497aff8fa97d58539add4d08c5e654da3853011debe099e7e358441a39
+HEAD df045db472d2b8ac6ce731671b7f8b41b1802d427072378f2af2032617fa6a2e
 
 89d8fa6effc1aa155869ea48f6a8320ab73a72c409bf0debb7aa747662fe7248  .github/workflows/release-gate.yml
 bcd16cc1af459dca26616b29918047e2f8fe9ce4079010245b2f72460f0bebfd  .gitignore
@@ -13,7 +13,7 @@ c067643672e4b98f5d817e25e88c33c20bedb9ff1fb959dfec08d5f65fbdfcce  CONTRIBUTING.m
 6f26b3c4a6017597ef0a302b31125dbb9848b77129d598b503ad33818acbf8a6  LICENSE
 68a5d827143f911800c6a7497310fa5315ef00dc6f8493950dabea6611749b4c  README.md
 922d5b2f2e7a9fefa289a522adf0f0c010cee754cfad81f8fce3eed2f83325ba  SECURITY.md
-0243d44b4c172a3d90a78416cc22eddf317be8e8dcde808d884cec6e92056448  STATUS.md
+c537fa1c91208a64081af469124f337d62a09dd0ec386caad630c0961180a359  STATUS.md
 c0c12e1f206279947420ba78c0614a3501d05229504178de8aec9b63e0a8eedb  architecture/decisions/ADR-001-layout-preserved.md
 1f5438f935a2494365c200b6a14cd4ad59fcdd9a1977264d70807ffd6b4cbe37  architecture/decisions/ADR-002-v1-untouched.md
 8aa7fdf076b6aaa9d6f9f4c085a917540166f85f2c157e2c37fb04cc6e962e74  architecture/decisions/ADR-003-two-crazy-tables.md
