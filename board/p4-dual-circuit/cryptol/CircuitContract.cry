@@ -17,12 +17,12 @@ init_circuit = {
     sram = init_sram
 }
 
-dual_step : DualCircuit -> Bit -> [8] -> Bit -> Addr -> Word -> DualCircuit
+dual_step : DualCircuit -> Bit -> [8] -> Bit -> Addr -> [32] -> DualCircuit
 dual_step dc start err we_req addr din = {
     ctrl = ctrl',
     sram = sram'
 }
-where
+  where
     ctrl' = step_state dc.ctrl start err
     we_gated = we_req && (ctrl'.mode == RUN) && ctrl'.locked
     sram' = sram_cycle dc.sram we_gated addr din

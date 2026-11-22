@@ -39,8 +39,8 @@ step_state s start err =
         else
             { mode = CALIBRATE, phase_err = err, cal_word = next_cal, locked = False }
             where next_cal =
-                if ~(err ! 0) && err != 0 then (if s.cal_word > 0 then s.cal_word - 1 else 0)
-                else (if s.cal_word < 255 then s.cal_word + 1 else 255)
+                    if ~(err ! 0) && (err != 0) then (if s.cal_word > 0 then s.cal_word - 1 else 0)
+                    else (if s.cal_word < 255 then s.cal_word + 1 else 255)
     else // RUN
         if abs8 err <= 4 then
             { mode = RUN, phase_err = err, cal_word = s.cal_word, locked = True }

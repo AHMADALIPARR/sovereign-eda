@@ -1,17 +1,22 @@
 // SPDX-License-Identifier: LicenseRef-Sovereign-Leviathan-SL-AGPL3-001
 // Copyright (C) 2026 SnapKitty West
 
-import "../cryptol/state.cry";
-import "../cryptol/circuit_contract.cry";
+import "../cryptol/State.cry";
+import "../cryptol/CircuitContract.cry";
 
 let prove_state_invariants = do {
     print "Proving State.run_implies_locked...";
-    prove_print z3 {{ State::run_implies_locked }};
+    prove_print z3 {{ run_implies_locked }};
 
     print "Proving CircuitContract.sram_write_protected...";
-    prove_print z3 {{ CircuitContract::sram_write_protected }};
+    prove_print z3 {{ sram_write_protected }};
 };
 
-// Equivalence hook for synthesized AIGER / Yosys netlist of p4_controller
-// let rtl_aig <- read_aig "p4_controller.aig";
-// prove_print abc {{ \s start err -> ... }};
+// RTL check: SAW cannot check the clocked controller. yosys_import
+// models each module as a combinational function from input ports to
+// output ports (SAW manual ch. 6), and the $dff netlist is rejected
+// at import as an undetected cycle (measured 2026-11-21 on a minimal
+// $dff probe). The RTL check is the GHDL testbench
+// verification/tb_p4_controller.vhd, run by `make test` in
+// board/p4-dual-circuit/. The netlist target in that Makefile exists
+// for future tooling, not for a SAW check that cannot run.

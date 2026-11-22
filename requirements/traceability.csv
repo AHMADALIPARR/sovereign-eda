@@ -1,0 +1,46 @@
+requirement,design,implementation,test,result,evidence
+SYS-001,architecture/system-design.md,malbolge-circuit/reference/malbolge.c; malbolge-circuit/tests/test_core.py,tests/test_core.py; tests/test_reference.sh,PASS,reports/test-results/gate-2026-11-21.log
+SYS-002,architecture/system-design.md,malbolge-circuit/reference/malbolge.c; malbolge-circuit/docs/SEMANTICS.md,tests/test_reference.sh,PASS,reports/test-results/gate-2026-11-21.log
+SYS-003,architecture/system-design.md; malbolge-circuit/docs/SEMANTICS.md,malbolge-circuit/reference/malbolge.c,tests/test_reference.sh,PASS,reports/test-results/gate-2026-11-21.log
+SYS-004,architecture/decisions/ADR-003-two-crazy-tables.md,malbolge-circuit/reference/malbolge.c; lean/MalbolgeProcessorRoot.lean; gpu/malbolge_ternary.cu,gpu/tests/verify_cuda_host.c; gpu/tests/verify_v2_host.c,PASS (each layer against its own table),reports/test-results/gate-2026-11-21.log
+SYS-005,architecture/system-design.md,gpu/malbolge_ternary.cu; gpu/malbolge_ternary_v2.cu,gpu/tests/verify_cuda_host.c; gpu/tests/verify_v2_host.c,PASS,reports/test-results/gate-2026-11-21.log
+SYS-101,architecture/system-design.md,board/eda.awk,scripts/release-gate.sh (board modes),PASS,reports/test-results/gate-2026-11-21.log
+SYS-102,architecture/system-design.md,board/eda.awk,scripts/release-gate.sh (board modes),PASS,reports/test-results/gate-2026-11-21.log
+SYS-103,architecture/system-design.md,board/mna.awk,scripts/release-gate.sh (mna run),PASS,reports/test-results/gate-2026-11-21.log
+SYS-201,architecture/system-design.md,board/p4-dual-circuit/semantics/state.mlw; board/p4-dual-circuit/cryptol/State.cry; board/p4-dual-circuit/rtl/p4_controller.vhd,GHDL analyze (ordered); cryptol load,PASS (analyze + load; WhyML proof BLOCKED),reports/test-results/gate-2026-11-21.log
+SYS-202,architecture/failure-modes/FMEA.md,board/p4-dual-circuit/semantics/state.mlw; board/p4-dual-circuit/verification/psl/dual_circuit.psl; board/p4-dual-circuit/rtl/p4_controller.vhd,GHDL analyze (ordered); GHDL testbench tb_p4_controller.vhd,PASS (analyze + testbench; PSL properties stated, not run),reports/test-results/gate-2026-11-21.log
+SYS-203,architecture/failure-modes/FMEA.md,board/p4-dual-circuit/semantics/state.mlw; board/p4-dual-circuit/cryptol/State.cry,cryptol load,PASS (load only; WhyML proof BLOCKED),reports/test-results/gate-2026-11-21.log
+SYS-301,architecture/system-design.md,board/sram-write-cell/SRAMSemantics.mlw; board/sram-write-cell/sram.cry; board/sram-write-cell/sram_write_cell.vhd,GHDL analyze; cryptol load,PASS (analyze + load; WhyML proof BLOCKED),reports/test-results/gate-2026-11-21.log
+SYS-901,architecture/system-design.md,malbolge-circuit/README.md (Phase 2/3 stated as not built),none,NOT APPLICABLE (out of scope by design),STATUS.md
+SYS-902,requirements/classification.md,requirements/classification.md,none,NOT APPLICABLE (non-flight class),requirements/classification.md
+SW-001,architecture/system-design.md,malbolge-circuit/reference/malbolge.c,malbolge-circuit/tests/test_reference.sh,PASS (one unused-variable warning for j),reports/test-results/gate-2026-11-21.log
+SW-002,architecture/system-design.md,malbolge-circuit/tests/test_core.py,malbolge-circuit/tests/test_core.py,PASS,reports/test-results/gate-2026-11-21.log
+SW-003,architecture/system-design.md,malbolge-circuit/rtl/malbolge_alu.vhd,GHDL analyze,PASS,reports/test-results/gate-2026-11-21.log
+SW-004,verification/formal/formal-evidence.md,malbolge-circuit/semantics/MalbolgeCore.mlw,why3 prove,BLOCKED (Why3 not installed on this VM),assurance/defects/defect-log.md D-002
+SW-005,verification/formal/formal-evidence.md,malbolge-circuit/saw/alu_equivalence.saw; malbolge-circuit/yosys/modfloor_map.v,make prove,BLOCKED (Yosys not installed on this VM),assurance/defects/defect-log.md D-003
+SW-006,architecture/decisions/ADR-002-v1-untouched.md,lean/MalbolgeTryteV2.lean; gpu/malbolge_ternary_v2.cu,lean check; gpu/tests/verify_v2_host.c,PASS,reports/test-results/gate-2026-11-21.log
+SW-007,architecture/decisions/ADR-002-v1-untouched.md,gpu/malbolge_ternary.cu; gpu/malbolge_ternary.ptx; lean/MalbolgeProcessorRoot.lean,gpu/tests/verify_cuda_host.c,PASS,reports/test-results/gate-2026-11-21.log
+SW-101,architecture/system-design.md,gpu/malbolge_ternary.cu; gpu/malbolge_ternary_v2.cu,gpu/tests/verify_cuda_host.c; gpu/tests/verify_v2_host.c,PASS,reports/test-results/gate-2026-11-21.log
+SW-102,architecture/system-design.md,gpu/malbolge_ternary.ptx,ptxas assembly,NOT RUN (no ptxas on this VM),assurance/defects/defect-log.md D-005
+SW-103,architecture/system-design.md,gpu/malbolge_ternary.cu,nvcc compile,NOT RUN (no CUDA toolchain on this VM),assurance/defects/defect-log.md D-004
+SW-201,architecture/system-design.md,board/eda.awk,scripts/release-gate.sh (board modes),PASS,reports/test-results/gate-2026-11-21.log
+SW-202,architecture/system-design.md,board/mna.awk,scripts/release-gate.sh (mna run),PASS,reports/test-results/gate-2026-11-21.log
+SW-203,architecture/system-design.md,board/p4-dual-circuit/rtl/*.vhd; board/sram-write-cell/*.vhd,GHDL analyze in dependency order,PASS,reports/test-results/gate-2026-11-21.log
+SW-204,verification/property-tests/property-tests.md,board/p4-dual-circuit/verification/tb_p4_controller.vhd; board/sram-write-cell/verification/tb_sram_write_cell.vhd,make test in board/p4-dual-circuit/ and board/sram-write-cell/,PASS,reports/test-results/gate-2026-11-21.log
+SW-205,verification/property-tests/property-tests.md,board/p4-dual-circuit/rtl/sram_bank.vhd; board/p4-dual-circuit/rtl/dual_circuit.vhd,none (no testbench in tree),NOT RUN (no testbench),assurance/defects/defect-log.md D-006
+SW-301,requirements/traceability.csv,requirements/traceability.csv,scripts/release-gate.sh (trace check),PASS,reports/test-results/gate-2026-11-21.log
+SW-302,WATERMARK.md,WATERMARK.md,scripts/release-gate.sh (watermark recompute),PASS,reports/test-results/gate-2026-11-21.log
+SW-303,configuration/toolchain-locks/toolchain.md,configuration/toolchain-locks/toolchain.md,scripts/release-gate.sh (toolchain record),PASS,reports/test-results/gate-2026-11-21.log
+IF-001,architecture/interface-control/ICD.md,malbolge-circuit/reference/malbolge.c,malbolge-circuit/tests/test_reference.sh,PASS,reports/test-results/gate-2026-11-21.log
+IF-002,architecture/interface-control/ICD.md,board/eda.awk,scripts/release-gate.sh (board modes),PASS,reports/test-results/gate-2026-11-21.log
+IF-003,architecture/interface-control/ICD.md,board/mna.awk,scripts/release-gate.sh (mna run),PASS,reports/test-results/gate-2026-11-21.log
+IF-004,architecture/interface-control/ICD.md,board/p4-dual-circuit/rtl/p4_controller.vhd,GHDL analyze,PASS,reports/test-results/gate-2026-11-21.log
+IF-005,architecture/interface-control/ICD.md,malbolge-circuit/rtl/malbolge_alu.vhd,GHDL analyze,PASS,reports/test-results/gate-2026-11-21.log
+IF-006,architecture/interface-control/ICD.md,gpu/malbolge_ternary.cu; gpu/malbolge_ternary_v2.cu,gpu/tests/verify_cuda_host.c; gpu/tests/verify_v2_host.c,PASS,reports/test-results/gate-2026-11-21.log
+IF-007,architecture/decisions/ADR-002-v1-untouched.md; architecture/decisions/ADR-003-two-crazy-tables.md,lean/MalbolgeTryteV2.lean; gpu/malbolge_ternary_v2.cu,gpu/tests/verify_v2_host.c,PASS,reports/test-results/gate-2026-11-21.log
+SAF-001,architecture/failure-modes/FMEA.md,board/p4-dual-circuit/semantics/state.mlw; board/p4-dual-circuit/verification/psl/dual_circuit.psl; board/p4-dual-circuit/rtl/p4_controller.vhd,GHDL analyze (ordered); GHDL testbench tb_p4_controller.vhd,PASS (analyze + testbench; PSL properties stated, not run),reports/test-results/gate-2026-11-21.log
+SAF-002,architecture/failure-modes/FMEA.md,board/p4-dual-circuit/semantics/state.mlw; board/p4-dual-circuit/cryptol/State.cry,cryptol load,PASS (load only; WhyML proof BLOCKED),reports/test-results/gate-2026-11-21.log
+SAF-003,architecture/failure-modes/FMEA.md,board/p4-dual-circuit/semantics/state.mlw; board/p4-dual-circuit/cryptol/State.cry,cryptol load,PASS (load only; WhyML proof BLOCKED),reports/test-results/gate-2026-11-21.log
+SAF-004,scripts/release-gate.sh,scripts/release-gate.sh; .github/workflows/release-gate.yml,scripts/release-gate.sh,PASS (gate exits non-zero on failure — verified by the BLOCKED items in this run),reports/test-results/gate-2026-11-21.log
+SAF-005,assurance/defects/defect-log.md,reports/test-results/gate-2026-11-21.log,scripts/release-gate.sh,PASS,reports/test-results/gate-2026-11-21.log
+SAF-006,STATUS.md,lean/MalbolgeProcessor.lean (reproduction label),manual inspection,PASS,STATUS.md

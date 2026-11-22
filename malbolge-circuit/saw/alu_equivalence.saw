@@ -3,7 +3,16 @@
 
 // Requires GHDL+Yosys with the ghdl plugin; see Makefile.
 // Paths are relative to this script's directory (saw/).
+// Proof script is bitwuzla, not w4 or abc: w4 (What4 + z3) did not
+// finish the 16-bit division-heavy equivalence in 10+ minutes on
+// two runs on this VM, and abc was killed (exit 137) about five
+// minutes in, with swap in use — the AIG for the divider-heavy
+// design blew past the box's memory. Boolector proves it in about
+// six seconds but is deprecated in SAW 1.5; bitwuzla is its
+// maintained successor and proves it in the same time. Verified
+// non-vacuous: a mutated spec (crazy + 1) fails with an unsolved
+// subgoal and a counterexample.
 enable_experimental;
 import "../cryptol/MalbolgeCore.cry";
 m <- yosys_import "../build/malbolge_alu.json";
-alu_correct <- yosys_verify {{ m.malbolge_alu }} [] {{ aluSpec }} [] w4;
+alu_correct <- yosys_verify {{ m.malbolge_alu }} [] {{ aluSpec }} [] bitwuzla;

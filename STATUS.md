@@ -258,5 +258,114 @@ bfe version is 8. Hand-counted dynamic instructions per tryte
 consistent with the measured CPU proxy. Real GPU timing is a
 Jetson measurement, not this number.
 
+## NASA-grade evidence layer (2026-11-21, local only, not pushed)
+On the owner's order ("Make this repo follow every guideline on this
+list if it failed it never gets pushed"), a NASA evidence layer was
+added beside the existing tree. No existing file was moved. The layer
+is requirements/ (classification, system, software, interface,
+safety, traceability.csv, compliance-matrix.csv), architecture/
+(system design, interface control, timing and memory, failure modes,
+four decision records), verification/ (formal evidence, static
+analysis, property tests, evidence index), tests/ (index of the tests
+that run), assurance/ (hazard log, risk register, defect log, owner
+review, independent assessment), configuration/ (toolchain, build
+manifest, baselines), operations/ (deployment, recovery,
+maintenance), scripts/release-gate.sh, and .github/workflows/
+release-gate.yml. Classification: non-flight research / engineering
+tool, non-safety-critical. No flight or safety-critical claim is made
+and no NASA certification is claimed.
+
+Baseline run 2026-11-21 on this VM, measured by the gate script
+itself: test_core.py PASS, test_reference.sh PASS (one unused-variable
+warning for j), GHDL Malbolge ALU exit 0, GHDL board VHDL exit 0 in
+dependency order (dual_circuit.vhd fails when analyzed alone because
+its sub-entities have not been analyzed yet; it passes last), board
+eda modes spice/netlist/veriloga/kicad exit 0, mna solver exit 0 with
+the output lagging the input, v1 host harness ALL CHECKS PASS, v2
+host harness ALL V2 CHECKS PASS with v2 roundtrip 0/59049 and v1
+roundtrip 58806/59049, CPU proxy benchmark ratios 3.30x / 4.14x /
+4.01x / 1.55x, Lean 4.12.0 checks MalbolgeTryteV2.lean exit 0,
+Cryptol 3.5.0 loads MalbolgeCore and the SRAM cell with no error.
+Toolchain measured 2026-11-21: cc 13.3.0, python3 3.12.3, GHDL 4.1.0,
+mawk 1.3.4, Lean 4.12.0 via elan, SAW 1.5, Cryptol 3.5.0. Why3 and
+Yosys are not installed on this VM now, so the WhyML and SAW proofs
+are BLOCKED. nvcc and ptxas are not installed, so CUDA compile and
+PTX assembly are NOT RUN. The board RTL has no simulation testbench.
+Correction to the paragraph above: GHDL is installed on this VM now
+(4.1.0) and the board VHDL analyzes as stated in this section.
+
+Gate verdict 2026-11-21: FAIL, 5 of 10 on the release-readiness
+checklist. Requirements, Traceability, Safety, Configuration, and
+Formal checks are DONE; Build, Static analysis, Testing, Review,
+and Release approval are NOT DONE. 25 checks pass. The only
+remaining gate blockers are CUDA compile and PTX assembly, which
+need nvcc and ptxas on a machine that has them. The tree is not
+pushed and no baseline is declared. What closes the gate: compile
+with nvcc and assemble with ptxas on a machine that has them, run
+the kernels on the Jetson for timing, and record a release approval.
+Gate log: reports/test-results/gate-2026-11-21.log. Readiness report:
+reports/release-readiness/release-readiness.md.
+
+## SAW wiring fixes (2026-11-21, local only, not pushed)
+On the owner's order, the three broken SAW wirings were fixed and the
+whole chain was run to show what passes and what is broken.
+
+1. SRAM write-cell: the SAW script called writeCellCircuit, which did
+not exist. The Cryptol file now defines it as the record wrapper
+around writeCell (enable is [1], not Bit — a 1-bit port imports as
+[1], and Bit does not unify with it; the Malbolge aluSpec uses
+valid : [1] for the same reason). The proof was run against a
+hand-written Yosys-format JSON (one $mux) in /tmp, because Yosys is
+not on this VM: yosys_verify with w4 passes, exit 0. The Makefile
+generation step itself is not validated here. New files:
+board/sram-write-cell/Makefile (analyze/prove/test),
+verification/tb_sram_write_cell.vhd (GHDL testbench, TESTBENCH
+PASS). The SAW script now imports build/sram_write_cell.json, and
+`make prove` generates it first from a clean checkout.
+2. Netlists: the Malbolge proof depends on `make analyze`, which
+generates build/malbolge_alu.json, but the analyze target did not run
+`pmuxtree` and the on-disk netlist held 20 $pmux cells, which the
+SAW manual says SAW does not support. `pmuxtree` was added to the
+analyze pass list. Correction to the earlier record: Yosys was absent
+at the first gate run and is present later the same day (Yosys 0.33
+at /usr/bin/yosys, Why3 1.6.0 at /usr/bin/why3). With Yosys present,
+`make analyze` regenerated the netlist with 0 $pmux cells (63 $mux),
+so the pmuxtree fix is validated by real output. `why3 prove
+semantics/MalbolgeCore.mlw` passes. The SRAM `make prove` passes
+end to end (GHDL, Yosys, SAW). The Malbolge SAW proof under w4 was
+killed after 10+ minutes with no verdict, the second such run; abc
+was killed (exit 137) about five minutes in. The script now uses
+bitwuzla and passes in about six seconds, verified non-vacuous
+against a mutated spec. A VM swap at ~17:23 wiped Yosys, Why3,
+GHDL, and /usr/bin/z3 and killed the first abc run. All three tools
+were reinstalled from the Ubuntu pool as .debs kept in
+~/workspace/.tools/debs/ and configured with apt-get -f install, but
+Ubuntu does not ship the Yosys GHDL plugin, so the netlist path
+changed to GHDL synthesis to Verilog plus Yosys read_verilog, and
+the Makefiles and the gate script put the SAW bundle bin dir on
+PATH because SAW and Cryptol need z3 and the bundle ships its own.
+The SRAM proof passes again end to end on the new path.
+3. p4 dual-circuit: the RTL check was commented out. SAW cannot check
+the clocked controller: yosys_import models modules as combinational
+input-to-output functions, and a minimal $dff probe netlist is
+rejected at import as an undetected cycle. The RTL check is now the
+GHDL testbench verification/tb_p4_controller.vhd (TESTBENCH PASS,
+and a deliberately wrong check was verified to fail with exit 1).
+The proof gate itself was broken in the Cryptol files, not just the
+SAW wiring: where-clause indentation in State.cry and SRAM.cry, an
+`&&` precedence error in State.cry, a bare `Word` ambiguity in
+CircuitContract.cry, lowercase filenames that do not match the module
+names, and Module::name references the SAW scripts do not resolve.
+All fixed (whitespace, one parenthesis, [32] spelling, renames to
+State.cry / SRAM.cry / CircuitContract.cry, plain property names).
+`saw saw/proof_gate.saw` now proves all three Cryptol properties and
+prints ALL PROOF GATES PASSED. New file:
+board/p4-dual-circuit/Makefile (analyze/test/prove).
+Finding, not fixed: the WhyML step enters Fault on out-of-range
+integer error, while the Cryptol step and the VHDL never enter Fault
+(the port is signed 8 bits, always in range, and the RTL never
+assigns MODE_FAULT). Recorded as defect D-013; which model is
+authoritative is the owner's call.
+
 ## Board, full extraction (2026-11-21 ~10:36 PST)
 The first board commit (807b497) only extracted the awk scripts and the board examples. The owner was right: the document holds a lot more code. The full document was re-extracted by file path. `board/p4-dual-circuit/` now holds the complete project tree: semantics/ (state, sram, oscillator, refinement — WhyML), cryptol/ (state, sram, circuit_contract), saw/ (digital_equivalence, sram_refinement, proof_gate), rtl/ (p4_controller, dual_circuit, sram_bank, phase_calibrator — VHDL), analog/ (oscillator.va, relaxation.va, parasitic_model.sp), verification/ (psl/dual_circuit.psl, pex/pex_rc_check.awk, thermal/thermal_sweep.sp). `board/sram-write-cell/` holds the standalone SRAM write-cell: SRAMSemantics.mlw, sram.cry, write_cell_equivalence.saw, sram_write_cell.vhd. The duplicate top-level `board/pex_rc_check.awk` was removed; the p4 version is canonical. Verified by execution: all four awk scripts parse and run (exit 0); eda.awk and mna.awk were run against the examples. The VHDL was not compiled here — GHDL is not installed on this VM anymore, so no compile claim is made for it.

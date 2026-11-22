@@ -152,7 +152,7 @@ The layers agree on the same state machine:
 | Layer | Files | What it states |
 | ----- | ----- | -------------- |
 | WhyML semantics | `board/p4-dual-circuit/semantics/state.mlw`, `board/p4-dual-circuit/semantics/sram.mlw`, `board/p4-dual-circuit/semantics/oscillator.mlw`, `board/p4-dual-circuit/semantics/refinement.mlw` | The mode type, the state invariants, the SRAM read/write, the oscillator, and the refinement from the abstract state to the circuit |
-| Cryptol contracts | `board/p4-dual-circuit/cryptol/state.cry`, `board/p4-dual-circuit/cryptol/sram.cry`, `board/p4-dual-circuit/cryptol/circuit_contract.cry` | The executable state step, the SRAM model, and the circuit contract; run-implies-locked as a property |
+| Cryptol contracts | `board/p4-dual-circuit/cryptol/State.cry`, `board/p4-dual-circuit/cryptol/SRAM.cry`, `board/p4-dual-circuit/cryptol/CircuitContract.cry` | The executable state step, the SRAM model, and the circuit contract; run-implies-locked as a property |
 | SAW proof gates | `board/p4-dual-circuit/saw/digital_equivalence.saw`, `board/p4-dual-circuit/saw/sram_refinement.saw`, `board/p4-dual-circuit/saw/proof_gate.saw` | Yosys imports the RTL and verifies it against the Cryptol contracts; the proof gate runs both and prints the pass line |
 | VHDL RTL | `board/p4-dual-circuit/rtl/p4_controller.vhd`, `board/p4-dual-circuit/rtl/dual_circuit.vhd`, `board/p4-dual-circuit/rtl/sram_bank.vhd`, `board/p4-dual-circuit/rtl/phase_calibrator.vhd` | The synthesizable controller, the structural top, the SRAM bank, and the phase calibrator |
 | Verilog-A analog | `board/p4-dual-circuit/analog/oscillator.va`, `board/p4-dual-circuit/analog/relaxation.va`, `board/p4-dual-circuit/analog/parasitic_model.sp` | The oscillator and relaxation analog blocks, and the parasitic model |
@@ -230,6 +230,15 @@ Pipe a board into ngspice:
 ```sh
 awk -v mode=spice -f board/eda.awk board/examples/board.txt | ngspice -b -
 ```
+
+## Engineering evidence
+
+The requirements live in `requirements/`, the design in `architecture/`,
+the verification record in `verification/`, the assurance record in
+`assurance/`, the toolchain and baselines in `configuration/`, and the
+release gate in `scripts/release-gate.sh`. The gate runs the tests that
+can run on the machine it runs on and records the log in
+`reports/test-results/`. If the gate fails, the tree is not pushed.
 
 ## License
 

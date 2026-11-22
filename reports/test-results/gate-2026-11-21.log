@@ -1,0 +1,1369 @@
+Release gate for sovereign-eda, 2026-11-21
+Repo: /home/hatch/workspace/sovereign-eda
+
+PASS: 9 trit pairs; 59049 rotations and range checks; 10000 crazy-word samples
+PASS: test_core.py oracle
+reference/malbolge.c: In function 'main':
+reference/malbolge.c:43:25: warning: unused variable 'j' [-Wunused-variable]
+   43 |   unsigned short i = 0, j;
+      |                         ^
+PASS: original C interpreter compiles and NOP/HALT smoke test passes
+PASS: test_reference.sh smoke
+PASS: GHDL Malbolge ALU
+PASS: GHDL board VHDL (ordered)
+ERC WARNING: floating net 'sin(0' (V1.3)
+ERC WARNING: floating net '5' (V1.4)
+PASS: eda spice mode
+ERC WARNING: floating net 'sin(0' (V1.3)
+ERC WARNING: floating net '5' (V1.4)
+PASS: eda netlist mode
+ERC WARNING: floating net 'sin(0' (V1.3)
+ERC WARNING: floating net '5' (V1.4)
+PASS: eda veriloga mode
+ERC WARNING: floating net 'sin(0' (V1.3)
+ERC WARNING: floating net '5' (V1.4)
+PASS: eda kicad mode
+PASS: mna solver
+ALL CHECKS PASS
+PASS: v1 host harness
+roundtrip v2 failures: 0 / 59049
+roundtrip v1 failures: 58806 / 59049
+ALL V2 CHECKS PASS
+PASS: v2 host harness
+PASS: CPU proxy benchmark runs
+PASS: Lean v2 tryte layer
+Loading module Cryptol
+Loading module MalbolgeCore
+PASS: Cryptol MalbolgeCore load
+Loading module Cryptol
+Loading module Main
+PASS: Cryptol SRAM cell load
+Loading module Cryptol
+Loading module State
+PASS: Cryptol p4 State load
+Loading module Cryptol
+Loading module SRAM
+PASS: Cryptol p4 SRAM load
+Loading module Cryptol
+Loading module State
+Loading module SRAM
+Loading module CircuitContract
+PASS: Cryptol p4 CircuitContract load
+Loading file "proof_gate.saw"
+Loading file "digital_equivalence.saw"
+Loading file "sram_refinement.saw"
+Proving State.run_implies_locked...
+Proving CircuitContract.sram_write_protected...
+Proving SRAM.write_read_match...
+ALL PROOF GATES PASSED.
+Proving State.run_implies_locked...
+Proving CircuitContract.sram_write_protected...
+Proving SRAM.write_read_match...
+ALL PROOF GATES PASSED.
+PASS: p4 proof gate
+make: Entering directory '/home/hatch/workspace/sovereign-eda/board/p4-dual-circuit'
+ghdl -a --std=08 rtl/p4_controller.vhd verification/tb_p4_controller.vhd
+ghdl -e --std=08 tb_p4_controller
+ghdl -r --std=08 tb_p4_controller --stop-time=500ns
+verification/tb_p4_controller.vhd:127:5:@79ns:(report note): TESTBENCH PASS: p4_controller
+ghdl:info: simulation stopped by --stop-time @500ns
+ghdl -a --std=08 rtl/sram_bank.vhd verification/tb_sram_bank.vhd
+ghdl -e --std=08 tb_sram_bank
+ghdl -r --std=08 tb_sram_bank --stop-time=500ns
+verification/tb_sram_bank.vhd:95:5:@116ns:(report note): TESTBENCH PASS: sram_bank
+ghdl:info: simulation stopped by --stop-time @500ns
+ghdl -a --std=08 rtl/p4_controller.vhd rtl/phase_calibrator.vhd rtl/sram_bank.vhd rtl/dual_circuit.vhd verification/tb_dual_circuit.vhd
+ghdl -e --std=08 tb_dual_circuit
+ghdl -r --std=08 tb_dual_circuit --stop-time=1000ns
+verification/tb_dual_circuit.vhd:134:5:@396ns:(report note): TESTBENCH PASS: dual_circuit
+ghdl:info: simulation stopped by --stop-time @1us
+make: Leaving directory '/home/hatch/workspace/sovereign-eda/board/p4-dual-circuit'
+PASS: board testbenches (p4_controller, sram_bank, dual_circuit)
+make: Entering directory '/home/hatch/workspace/sovereign-eda/board/sram-write-cell'
+ghdl -a --std=08 sram_write_cell.vhd verification/tb_sram_write_cell.vhd
+ghdl -e --std=08 tb_sram_write_cell
+ghdl -r --std=08 tb_sram_write_cell
+verification/tb_sram_write_cell.vhd:67:5:@5ns:(report note): TESTBENCH PASS: sram_write_cell
+make: Leaving directory '/home/hatch/workspace/sovereign-eda/board/sram-write-cell'
+PASS: sram_write_cell testbench
+theory MalbolgeCore
+  (* use why3.BuiltIn.BuiltIn *)
+  
+  (* use why3.Bool.Bool *)
+  
+  (* use why3.Unit.Unit *)
+  
+  (* use int.Int *)
+  
+  (* use int.ComputerDivision *)
+  
+  constant modulus : int = 59049
+  
+  predicate word (x:int) = 0 <= x /\ x < modulus
+  
+  predicate trit (x:int) = 0 <= x /\ x < 3
+  
+  goal crazy_trit'vc :
+    forall a:int, d:int.
+     trit a /\ trit d ->
+     (let (=)'result'unused = (if d = 0 then True else False) in
+      (if d = 0
+       then let (=)'result'unused1 = (if a = 0 then True else False) in true
+       else let (=)'result'unused1 = (if d = 1 then True else False) in
+            if d = 1
+            then let (=)'result'unused2 = (if a = 0 then True else False) in
+                 not a = 0 ->
+                 (let (=)'result'unused3 = (if a = 1 then True else False) in
+                  true)
+            else let (=)'result'unused2 = (if a = 2 then True else False) in
+                 true) /\
+      (forall result:int.
+        (if d = 0
+         then let (=)'result'unused1 = (if a = 0 then True else False) in
+              if a = 0 then result = 1 else result = 0
+         else let (=)'result'unused1 = (if d = 1 then True else False) in
+              if d = 1
+              then let (=)'result'unused2 =
+                     (if a = 0 then True else False)
+                   in
+                   if a = 0 then result = 1
+                   else let (=)'result'unused3 =
+                          (if a = 1 then True else False)
+                        in if a = 1 then result = 0 else result = 2
+              else let (=)'result'unused2 =
+                     (if a = 2 then True else False)
+                   in if a = 2 then result = 1 else result = 2) ->
+        trit result &&
+        (d = 0 -> result = (if a = 0 then 1 else 0)) &&
+        (d = 1 -> result = (if a = 0 then 1 else if a = 1 then 0 else 2)) &&
+        (d = 2 -> result = (if a = 2 then 1 else 2))))
+  
+  function crazy_trit int int : int
+  
+  axiom crazy_trit'def :
+    forall a:int, d:int.
+     trit a /\ trit d ->
+     (if d = 0 then if a = 0 then crazy_trit a d = 1 else crazy_trit a d = 0
+      else if d = 1
+           then if a = 0 then crazy_trit a d = 1
+                else if a = 1 then crazy_trit a d = 0 else crazy_trit a d = 2
+           else if a = 2 then crazy_trit a d = 1 else crazy_trit a d = 2)
+  
+  axiom crazy_trit'spec :
+    forall a:int, d:int.
+     trit a /\ trit d ->
+     trit (crazy_trit a d) /\
+     (d = 0 -> crazy_trit a d = (if a = 0 then 1 else 0)) /\
+     (d = 1 -> crazy_trit a d = (if a = 0 then 1 else if a = 1 then 0 else 2)) /\
+     (d = 2 -> crazy_trit a d = (if a = 2 then 1 else 2))
+  
+  goal rotate'vc :
+    forall x:int.
+     word x ->
+     not 3 = 0 /\
+     (let o = mod x 3 in
+      let mod'result'unused = o in
+      let o1 = o * 19683 in
+      let ( * )'result'unused = o1 in
+      not 3 = 0 /\
+      (let o2 = div x 3 in
+       let div'result'unused = o2 in
+       let result = o2 + o1 in
+       let (+)'result'unused = result in
+       word result && result = (div x 3 + (mod x 3 * 19683))))
+  
+  function rotate int : int
+  
+  axiom rotate'def :
+    forall x:int. word x -> rotate x = (div x 3 + (mod x 3 * 19683))
+  
+  axiom rotate'spec :
+    forall x:int.
+     word x -> word (rotate x) /\ rotate x = (div x 3 + (mod x 3 * 19683))
+  
+  goal decode'vc :
+    forall c:int, cell:int.
+     word c /\ word cell ->
+     (let o = c + cell in
+      let (+)'result'unused = o in
+      not 94 = 0 /\
+      (let result = mod o 94 in
+       let mod'result'unused = result in 0 <= result /\ result < 94))
+  
+  function decode int int : int
+  
+  axiom decode'def :
+    forall c:int, cell:int.
+     word c /\ word cell -> decode c cell = mod (c + cell) 94
+  
+  axiom decode'spec :
+    forall c:int, cell:int.
+     word c /\ word cell -> 0 <= decode c cell /\ decode c cell < 94
+  
+  goal inc'vc :
+    forall x:int.
+     word x ->
+     (let o = modulus in
+      let o1 = x + 1 in
+      let (+)'result'unused = o1 in
+      not o = 0 /\
+      (let result = mod o1 o in
+       let mod'result'unused = result in
+       word result && result = mod (x + 1) modulus))
+  
+  function inc int : int
+  
+  axiom inc'def : forall x:int. word x -> inc x = mod (x + 1) modulus
+  
+  axiom inc'spec :
+    forall x:int. word x -> word (inc x) /\ inc x = mod (x + 1) modulus
+  
+  goal crazy10'vc :
+    forall a:int, d:int.
+     word a /\ word d ->
+     not 3 = 0 /\
+     (let a0 = mod a 3 in
+      let mod'result'unused = a0 in
+      not 3 = 0 /\
+      (let d0 = mod d 3 in
+       let mod'result'unused1 = d0 in
+       not 3 = 0 /\
+       (let o = div a 3 in
+        let div'result'unused = o in
+        not 3 = 0 /\
+        (let a1 = mod o 3 in
+         let mod'result'unused2 = a1 in
+         not 3 = 0 /\
+         (let o1 = div d 3 in
+          let div'result'unused1 = o1 in
+          not 3 = 0 /\
+          (let d1 = mod o1 3 in
+           let mod'result'unused3 = d1 in
+           not 9 = 0 /\
+           (let o2 = div a 9 in
+            let div'result'unused2 = o2 in
+            not 3 = 0 /\
+            (let a2 = mod o2 3 in
+             let mod'result'unused4 = a2 in
+             not 9 = 0 /\
+             (let o3 = div d 9 in
+              let div'result'unused3 = o3 in
+              not 3 = 0 /\
+              (let d2 = mod o3 3 in
+               let mod'result'unused5 = d2 in
+               not 27 = 0 /\
+               (let o4 = div a 27 in
+                let div'result'unused4 = o4 in
+                not 3 = 0 /\
+                (let a3 = mod o4 3 in
+                 let mod'result'unused6 = a3 in
+                 not 27 = 0 /\
+                 (let o5 = div d 27 in
+                  let div'result'unused5 = o5 in
+                  not 3 = 0 /\
+                  (let d3 = mod o5 3 in
+                   let mod'result'unused7 = d3 in
+                   not 81 = 0 /\
+                   (let o6 = div a 81 in
+                    let div'result'unused6 = o6 in
+                    not 3 = 0 /\
+                    (let a4 = mod o6 3 in
+                     let mod'result'unused8 = a4 in
+                     not 81 = 0 /\
+                     (let o7 = div d 81 in
+                      let div'result'unused7 = o7 in
+                      not 3 = 0 /\
+                      (let d4 = mod o7 3 in
+                       let mod'result'unused9 = d4 in
+                       not 243 = 0 /\
+                       (let o8 = div a 243 in
+                        let div'result'unused8 = o8 in
+                        not 3 = 0 /\
+                        (let a5 = mod o8 3 in
+                         let mod'result'unused10 = a5 in
+                         not 243 = 0 /\
+                         (let o9 = div d 243 in
+                          let div'result'unused9 = o9 in
+                          not 3 = 0 /\
+                          (let d5 = mod o9 3 in
+                           let mod'result'unused11 = d5 in
+                           not 729 = 0 /\
+                           (let o10 = div a 729 in
+                            let div'result'unused10 = o10 in
+                            not 3 = 0 /\
+                            (let a6 = mod o10 3 in
+                             let mod'result'unused12 = a6 in
+                             not 729 = 0 /\
+                             (let o11 = div d 729 in
+                              let div'result'unused11 = o11 in
+                              not 3 = 0 /\
+                              (let d6 = mod o11 3 in
+                               let mod'result'unused13 = d6 in
+                               not 2187 = 0 /\
+                               (let o12 = div a 2187 in
+                                let div'result'unused12 = o12 in
+                                not 3 = 0 /\
+                                (let a7 = mod o12 3 in
+                                 let mod'result'unused14 = a7 in
+                                 not 2187 = 0 /\
+                                 (let o13 = div d 2187 in
+                                  let div'result'unused13 = o13 in
+                                  not 3 = 0 /\
+                                  (let d7 = mod o13 3 in
+                                   let mod'result'unused15 = d7 in
+                                   not 6561 = 0 /\
+                                   (let o14 = div a 6561 in
+                                    let div'result'unused14 = o14 in
+                                    not 3 = 0 /\
+                                    (let a8 = mod o14 3 in
+                                     let mod'result'unused16 = a8 in
+                                     not 6561 = 0 /\
+                                     (let o15 = div d 6561 in
+                                      let div'result'unused15 = o15 in
+                                      not 3 = 0 /\
+                                      (let d8 = mod o15 3 in
+                                       let mod'result'unused17 = d8 in
+                                       not 19683 = 0 /\
+                                       (let o16 = div a 19683 in
+                                        let div'result'unused16 = o16 in
+                                        not 3 = 0 /\
+                                        (let a9 = mod o16 3 in
+                                         let mod'result'unused18 = a9 in
+                                         not 19683 = 0 /\
+                                         (let o17 = div d 19683 in
+                                          let div'result'unused17 = o17 in
+                                          not 3 = 0 /\
+                                          (let d9 = mod o17 3 in
+                                           let mod'result'unused19 = d9 in
+                                           (trit a9 /\ trit d9) /\
+                                           (let o18 = crazy_trit a9 d9 in
+                                            trit o18 /\
+                                            (d9 = 0 ->
+                                             o18 = (if a9 = 0 then 1 else 0)) /\
+                                            (d9 = 1 ->
+                                             o18 =
+                                             (if a9 = 0 then 1
+                                              else if a9 = 1 then 0 else 2)) /\
+                                            (d9 = 2 ->
+                                             o18 = (if a9 = 2 then 1 else 2)) ->
+                                            (let crazy_trit'result'unused =
+                                               o18
+                                             in
+                                             let o19 = 19683 * o18 in
+                                             let ( * )'result'unused = o19 in
+                                             (trit a8 /\ trit d8) /\
+                                             (let o20 = crazy_trit a8 d8 in
+                                              trit o20 /\
+                                              (d8 = 0 ->
+                                               o20 =
+                                               (if a8 = 0 then 1 else 0)) /\
+                                              (d8 = 1 ->
+                                               o20 =
+                                               (if a8 = 0 then 1
+                                                else if a8 = 1 then 0 else 2)) /\
+                                              (d8 = 2 ->
+                                               o20 =
+                                               (if a8 = 2 then 1 else 2)) ->
+                                              (let crazy_trit'result'unused1 =
+                                                 o20
+                                               in
+                                               let o21 = 6561 * o20 in
+                                               let ( * )'result'unused1 =
+                                                 o21
+                                               in
+                                               (trit a7 /\ trit d7) /\
+                                               (let o22 = crazy_trit a7 d7 in
+                                                trit o22 /\
+                                                (d7 = 0 ->
+                                                 o22 =
+                                                 (if a7 = 0 then 1 else 0)) /\
+                                                (d7 = 1 ->
+                                                 o22 =
+                                                 (if a7 = 0 then 1
+                                                  else if a7 = 1 then 0
+                                                       else 2)) /\
+                                                (d7 = 2 ->
+                                                 o22 =
+                                                 (if a7 = 2 then 1 else 2)) ->
+                                                (let crazy_trit'result'unused2 =
+                                                   o22
+                                                 in
+                                                 let o23 = 2187 * o22 in
+                                                 let ( * )'result'unused2 =
+                                                   o23
+                                                 in
+                                                 (trit a6 /\ trit d6) /\
+                                                 (let o24 =
+                                                    crazy_trit a6 d6
+                                                  in
+                                                  trit o24 /\
+                                                  (d6 = 0 ->
+                                                   o24 =
+                                                   (if a6 = 0 then 1 else 0)) /\
+                                                  (d6 = 1 ->
+                                                   o24 =
+                                                   (if a6 = 0 then 1
+                                                    else if a6 = 1 then 0
+                                                         else 2)) /\
+                                                  (d6 = 2 ->
+                                                   o24 =
+                                                   (if a6 = 2 then 1 else 2)) ->
+                                                  (let crazy_trit'result'unused3 =
+                                                     o24
+                                                   in
+                                                   let o25 = 729 * o24 in
+                                                   let ( * )'result'unused3 =
+                                                     o25
+                                                   in
+                                                   (trit a5 /\ trit d5) /\
+                                                   (let o26 =
+                                                      crazy_trit a5 d5
+                                                    in
+                                                    trit o26 /\
+                                                    (d5 = 0 ->
+                                                     o26 =
+                                                     (if a5 = 0 then 1 else 0)) /\
+                                                    (d5 = 1 ->
+                                                     o26 =
+                                                     (if a5 = 0 then 1
+                                                      else if a5 = 1 then 0
+                                                           else 2)) /\
+                                                    (d5 = 2 ->
+                                                     o26 =
+                                                     (if a5 = 2 then 1 else 2)) ->
+                                                    (let crazy_trit'result'unused4 =
+                                                       o26
+                                                     in
+                                                     let o27 = 243 * o26 in
+                                                     let ( * )'result'unused4 =
+                                                       o27
+                                                     in
+                                                     (trit a4 /\ trit d4) /\
+                                                     (let o28 =
+                                                        crazy_trit a4 d4
+                                                      in
+                                                      trit o28 /\
+                                                      (d4 = 0 ->
+                                                       o28 =
+                                                       (if a4 = 0 then 1
+                                                        else 0)) /\
+                                                      (d4 = 1 ->
+                                                       o28 =
+                                                       (if a4 = 0 then 1
+                                                        else if a4 = 1 then 0
+                                                             else 2)) /\
+                                                      (d4 = 2 ->
+                                                       o28 =
+                                                       (if a4 = 2 then 1
+                                                        else 2)) ->
+                                                      (let crazy_trit'result'unused5 =
+                                                         o28
+                                                       in
+                                                       let o29 = 81 * o28 in
+                                                       let ( * )'result'unused5 =
+                                                         o29
+                                                       in
+                                                       (trit a3 /\ trit d3) /\
+                                                       (let o30 =
+                                                          crazy_trit a3 d3
+                                                        in
+                                                        trit o30 /\
+                                                        (d3 = 0 ->
+                                                         o30 =
+                                                         (if a3 = 0 then 1
+                                                          else 0)) /\
+                                                        (d3 = 1 ->
+                                                         o30 =
+                                                         (if a3 = 0 then 1
+                                                          else if a3 = 1
+                                                               then 0 else 2)) /\
+                                                        (d3 = 2 ->
+                                                         o30 =
+                                                         (if a3 = 2 then 1
+                                                          else 2)) ->
+                                                        (let crazy_trit'result'unused6 =
+                                                           o30
+                                                         in
+                                                         let o31 =
+                                                           27 * o30
+                                                         in
+                                                         let ( * )'result'unused6 =
+                                                           o31
+                                                         in
+                                                         (trit a2 /\ trit d2) /\
+                                                         (let o32 =
+                                                            crazy_trit a2 d2
+                                                          in
+                                                          trit o32 /\
+                                                          (d2 = 0 ->
+                                                           o32 =
+                                                           (if a2 = 0 then 1
+                                                            else 0)) /\
+                                                          (d2 = 1 ->
+                                                           o32 =
+                                                           (if a2 = 0 then 1
+                                                            else if a2 = 1
+                                                                 then 0
+                                                                 else 2)) /\
+                                                          (d2 = 2 ->
+                                                           o32 =
+                                                           (if a2 = 2 then 1
+                                                            else 2)) ->
+                                                          (let crazy_trit'result'unused7 =
+                                                             o32
+                                                           in
+                                                           let o33 =
+                                                             9 * o32
+                                                           in
+                                                           let ( * )'result'unused7 =
+                                                             o33
+                                                           in
+                                                           (trit a1 /\
+                                                            trit d1) /\
+                                                           (let o34 =
+                                                              crazy_trit a1
+                                                              d1
+                                                            in
+                                                            trit o34 /\
+                                                            (d1 = 0 ->
+                                                             o34 =
+                                                             (if a1 = 0
+                                                              then 1 else 0)) /\
+                                                            (d1 = 1 ->
+                                                             o34 =
+                                                             (if a1 = 0
+                                                              then 1
+                                                              else if 
+                                                                   a1 = 1
+                                                                   then 0
+                                                                   else 2)) /\
+                                                            (d1 = 2 ->
+                                                             o34 =
+                                                             (if a1 = 2
+                                                              then 1 else 2)) ->
+                                                            (let crazy_trit'result'unused8 =
+                                                               o34
+                                                             in
+                                                             let o35 =
+                                                               3 * o34
+                                                             in
+                                                             let ( * )'result'unused8 =
+                                                               o35
+                                                             in
+                                                             (trit a0 /\
+                                                              trit d0) /\
+                                                             (let o36 =
+                                                                crazy_trit a0
+                                                                d0
+                                                              in
+                                                              trit o36 /\
+                                                              (d0 = 0 ->
+                                                               o36 =
+                                                               (if a0 = 0
+                                                                then 1 else 0)) /\
+                                                              (d0 = 1 ->
+                                                               o36 =
+                                                               (if a0 = 0
+                                                                then 1
+                                                                else 
+                                                                if a0 = 1
+                                                                then 0 else 2)) /\
+                                                              (d0 = 2 ->
+                                                               o36 =
+                                                               (if a0 = 2
+                                                                then 1 else 2)) ->
+                                                              (let crazy_trit'result'unused9 =
+                                                                 o36
+                                                               in
+                                                               let o37 =
+                                                                 o36 + o35
+                                                               in
+                                                               let (+)'result'unused =
+                                                                 o37
+                                                               in
+                                                               let o38 =
+                                                                 o37 + o33
+                                                               in
+                                                               let (+)'result'unused1 =
+                                                                 o38
+                                                               in
+                                                               let o39 =
+                                                                 o38 + o31
+                                                               in
+                                                               let (+)'result'unused2 =
+                                                                 o39
+                                                               in
+                                                               let o40 =
+                                                                 o39 + o29
+                                                               in
+                                                               let (+)'result'unused3 =
+                                                                 o40
+                                                               in
+                                                               let o41 =
+                                                                 o40 + o27
+                                                               in
+                                                               let (+)'result'unused4 =
+                                                                 o41
+                                                               in
+                                                               let o42 =
+                                                                 o41 + o25
+                                                               in
+                                                               let (+)'result'unused5 =
+                                                                 o42
+                                                               in
+                                                               let o43 =
+                                                                 o42 + o23
+                                                               in
+                                                               let (+)'result'unused6 =
+                                                                 o43
+                                                               in
+                                                               let o44 =
+                                                                 o43 + o21
+                                                               in
+                                                               let (+)'result'unused7 =
+                                                                 o44
+                                                               in
+                                                               let result =
+                                                                 o44 + o19
+                                                               in
+                                                               let (+)'result'unused8 =
+                                                                 result
+                                                               in word result))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+  
+  function crazy10 int int : int
+  
+  axiom crazy10'def :
+    forall a:int, d:int.
+     word a /\ word d ->
+     crazy10 a d =
+     (((((((((crazy_trit (mod a 3) (mod d 3)
+              + (3 * crazy_trit (mod (div a 3) 3) (mod (div d 3) 3)))
+             + (9 * crazy_trit (mod (div a 9) 3) (mod (div d 9) 3)))
+            + (27 * crazy_trit (mod (div a 27) 3) (mod (div d 27) 3)))
+           + (81 * crazy_trit (mod (div a 81) 3) (mod (div d 81) 3)))
+          + (243 * crazy_trit (mod (div a 243) 3) (mod (div d 243) 3)))
+         + (729 * crazy_trit (mod (div a 729) 3) (mod (div d 729) 3)))
+        + (2187 * crazy_trit (mod (div a 2187) 3) (mod (div d 2187) 3)))
+       + (6561 * crazy_trit (mod (div a 6561) 3) (mod (div d 6561) 3)))
+      + (19683 * crazy_trit (mod (div a 19683) 3) (mod (div d 19683) 3)))
+  
+  axiom crazy10'spec :
+    forall a:int, d:int. word a /\ word d -> word (crazy10 a d)
+end
+
+PASS: WhyML proof
+mkdir -p build
+ghdl -a --std=08 rtl/malbolge_alu.vhd
+ghdl --synth --std=08 --out=verilog rtl/malbolge_alu.vhd -e malbolge_alu > build/malbolge_alu.v
+yosys -p 'read_verilog build/malbolge_alu.v; hierarchy -top malbolge_alu; proc; opt; techmap -map yosys/modfloor_map.v; pmuxtree; opt; write_json build/malbolge_alu.json'
+
+ /----------------------------------------------------------------------------\
+ |                                                                            |
+ |  yosys -- Yosys Open SYnthesis Suite                                       |
+ |                                                                            |
+ |  Copyright (C) 2012 - 2020  Claire Xenia Wolf <claire@yosyshq.com>         |
+ |                                                                            |
+ |  Permission to use, copy, modify, and/or distribute this software for any  |
+ |  purpose with or without fee is hereby granted, provided that the above    |
+ |  copyright notice and this permission notice appear in all copies.         |
+ |                                                                            |
+ |  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES  |
+ |  WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF          |
+ |  MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR   |
+ |  ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES    |
+ |  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN     |
+ |  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF   |
+ |  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.            |
+ |                                                                            |
+ \----------------------------------------------------------------------------/
+
+ Yosys 0.33 (git sha1 2584903a060)
+
+
+-- Running command `read_verilog build/malbolge_alu.v; hierarchy -top malbolge_alu; proc; opt; techmap -map yosys/modfloor_map.v; pmuxtree; opt; write_json build/malbolge_alu.json' --
+
+1. Executing Verilog-2005 frontend: build/malbolge_alu.v
+Parsing Verilog input from `build/malbolge_alu.v' to AST representation.
+Generating RTLIL representation for module `\malbolge_alu'.
+Successfully finished Verilog frontend.
+
+2. Executing HIERARCHY pass (managing design hierarchy).
+
+2.1. Analyzing design hierarchy..
+Top module:  \malbolge_alu
+
+2.2. Analyzing design hierarchy..
+Top module:  \malbolge_alu
+Removed 0 unused modules.
+
+3. Executing PROC pass (convert processes to netlists).
+
+3.1. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Cleaned up 0 empty switches.
+
+3.2. Executing PROC_RMDEAD pass (remove dead branches from decision trees).
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:1158$179 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:1150$178 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:1136$174 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:1122$170 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:1076$161 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:1068$160 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:1054$156 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:1040$152 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:994$143 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:986$142 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:972$138 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:958$134 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:912$125 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:904$124 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:890$120 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:876$116 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:830$107 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:822$106 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:808$102 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:794$98 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:748$89 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:740$88 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:726$84 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:712$80 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:666$71 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:658$70 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:644$66 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:630$62 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:584$53 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:576$52 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:562$48 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:548$44 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:502$35 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:494$34 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:480$30 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:466$26 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:420$17 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:412$16 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:398$12 in module malbolge_alu.
+Marked 1 switch rules as full_case in process $proc$build/malbolge_alu.v:384$8 in module malbolge_alu.
+Removed a total of 0 dead cases.
+
+3.3. Executing PROC_PRUNE pass (remove redundant assignments in processes).
+Removed 0 redundant assignments.
+Promoted 40 assignments to connections.
+
+3.4. Executing PROC_INIT pass (extract init attributes).
+
+3.5. Executing PROC_ARST pass (detect async resets in processes).
+
+3.6. Executing PROC_ROM pass (convert switches to ROMs).
+Converted 0 switches.
+<suppressed ~40 debug messages>
+
+3.7. Executing PROC_MUX pass (convert decision trees to multiplexers).
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:1158$179'.
+     1/1: $1\n614_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:1150$178'.
+     1/1: $1\n612_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:1136$174'.
+     1/1: $1\n601_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:1122$170'.
+     1/1: $1\n590_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:1076$161'.
+     1/1: $1\n554_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:1068$160'.
+     1/1: $1\n552_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:1054$156'.
+     1/1: $1\n541_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:1040$152'.
+     1/1: $1\n530_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:994$143'.
+     1/1: $1\n494_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:986$142'.
+     1/1: $1\n492_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:972$138'.
+     1/1: $1\n481_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:958$134'.
+     1/1: $1\n470_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:912$125'.
+     1/1: $1\n434_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:904$124'.
+     1/1: $1\n432_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:890$120'.
+     1/1: $1\n421_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:876$116'.
+     1/1: $1\n410_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:830$107'.
+     1/1: $1\n374_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:822$106'.
+     1/1: $1\n372_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:808$102'.
+     1/1: $1\n361_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:794$98'.
+     1/1: $1\n350_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:748$89'.
+     1/1: $1\n314_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:740$88'.
+     1/1: $1\n312_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:726$84'.
+     1/1: $1\n301_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:712$80'.
+     1/1: $1\n290_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:666$71'.
+     1/1: $1\n254_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:658$70'.
+     1/1: $1\n252_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:644$66'.
+     1/1: $1\n241_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:630$62'.
+     1/1: $1\n230_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:584$53'.
+     1/1: $1\n194_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:576$52'.
+     1/1: $1\n192_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:562$48'.
+     1/1: $1\n181_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:548$44'.
+     1/1: $1\n170_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:502$35'.
+     1/1: $1\n134_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:494$34'.
+     1/1: $1\n132_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:480$30'.
+     1/1: $1\n121_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:466$26'.
+     1/1: $1\n110_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:420$17'.
+     1/1: $1\n72_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:412$16'.
+     1/1: $1\n70_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:398$12'.
+     1/1: $1\n59_o[30:0]
+Creating decoders for process `\malbolge_alu.$proc$build/malbolge_alu.v:384$8'.
+     1/1: $1\n48_o[30:0]
+
+3.8. Executing PROC_DLATCH pass (convert process syncs to latches).
+No latch inferred for signal `\malbolge_alu.\n614_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:1158$179'.
+No latch inferred for signal `\malbolge_alu.\n612_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:1150$178'.
+No latch inferred for signal `\malbolge_alu.\n601_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:1136$174'.
+No latch inferred for signal `\malbolge_alu.\n590_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:1122$170'.
+No latch inferred for signal `\malbolge_alu.\n554_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:1076$161'.
+No latch inferred for signal `\malbolge_alu.\n552_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:1068$160'.
+No latch inferred for signal `\malbolge_alu.\n541_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:1054$156'.
+No latch inferred for signal `\malbolge_alu.\n530_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:1040$152'.
+No latch inferred for signal `\malbolge_alu.\n494_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:994$143'.
+No latch inferred for signal `\malbolge_alu.\n492_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:986$142'.
+No latch inferred for signal `\malbolge_alu.\n481_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:972$138'.
+No latch inferred for signal `\malbolge_alu.\n470_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:958$134'.
+No latch inferred for signal `\malbolge_alu.\n434_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:912$125'.
+No latch inferred for signal `\malbolge_alu.\n432_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:904$124'.
+No latch inferred for signal `\malbolge_alu.\n421_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:890$120'.
+No latch inferred for signal `\malbolge_alu.\n410_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:876$116'.
+No latch inferred for signal `\malbolge_alu.\n374_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:830$107'.
+No latch inferred for signal `\malbolge_alu.\n372_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:822$106'.
+No latch inferred for signal `\malbolge_alu.\n361_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:808$102'.
+No latch inferred for signal `\malbolge_alu.\n350_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:794$98'.
+No latch inferred for signal `\malbolge_alu.\n314_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:748$89'.
+No latch inferred for signal `\malbolge_alu.\n312_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:740$88'.
+No latch inferred for signal `\malbolge_alu.\n301_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:726$84'.
+No latch inferred for signal `\malbolge_alu.\n290_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:712$80'.
+No latch inferred for signal `\malbolge_alu.\n254_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:666$71'.
+No latch inferred for signal `\malbolge_alu.\n252_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:658$70'.
+No latch inferred for signal `\malbolge_alu.\n241_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:644$66'.
+No latch inferred for signal `\malbolge_alu.\n230_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:630$62'.
+No latch inferred for signal `\malbolge_alu.\n194_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:584$53'.
+No latch inferred for signal `\malbolge_alu.\n192_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:576$52'.
+No latch inferred for signal `\malbolge_alu.\n181_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:562$48'.
+No latch inferred for signal `\malbolge_alu.\n170_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:548$44'.
+No latch inferred for signal `\malbolge_alu.\n134_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:502$35'.
+No latch inferred for signal `\malbolge_alu.\n132_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:494$34'.
+No latch inferred for signal `\malbolge_alu.\n121_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:480$30'.
+No latch inferred for signal `\malbolge_alu.\n110_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:466$26'.
+No latch inferred for signal `\malbolge_alu.\n72_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:420$17'.
+No latch inferred for signal `\malbolge_alu.\n70_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:412$16'.
+No latch inferred for signal `\malbolge_alu.\n59_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:398$12'.
+No latch inferred for signal `\malbolge_alu.\n48_o' from process `\malbolge_alu.$proc$build/malbolge_alu.v:384$8'.
+
+3.9. Executing PROC_DFF pass (convert process syncs to FFs).
+
+3.10. Executing PROC_MEMWR pass (convert process memory writes to cells).
+
+3.11. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:1158$179'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:1158$179'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:1150$178'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:1150$178'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:1136$174'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:1136$174'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:1122$170'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:1122$170'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:1076$161'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:1076$161'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:1068$160'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:1068$160'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:1054$156'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:1054$156'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:1040$152'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:1040$152'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:994$143'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:994$143'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:986$142'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:986$142'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:972$138'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:972$138'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:958$134'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:958$134'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:912$125'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:912$125'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:904$124'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:904$124'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:890$120'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:890$120'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:876$116'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:876$116'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:830$107'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:830$107'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:822$106'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:822$106'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:808$102'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:808$102'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:794$98'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:794$98'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:748$89'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:748$89'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:740$88'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:740$88'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:726$84'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:726$84'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:712$80'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:712$80'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:666$71'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:666$71'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:658$70'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:658$70'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:644$66'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:644$66'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:630$62'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:630$62'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:584$53'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:584$53'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:576$52'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:576$52'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:562$48'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:562$48'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:548$44'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:548$44'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:502$35'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:502$35'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:494$34'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:494$34'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:480$30'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:480$30'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:466$26'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:466$26'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:420$17'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:420$17'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:412$16'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:412$16'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:398$12'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:398$12'.
+Found and cleaned up 1 empty switch in `\malbolge_alu.$proc$build/malbolge_alu.v:384$8'.
+Removing empty process `malbolge_alu.$proc$build/malbolge_alu.v:384$8'.
+Cleaned up 40 empty switches.
+
+3.12. Executing OPT_EXPR pass (perform const folding).
+Optimizing module malbolge_alu.
+<suppressed ~40 debug messages>
+
+4. Executing OPT pass (performing simple optimizations).
+
+4.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module malbolge_alu.
+<suppressed ~3 debug messages>
+
+4.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\malbolge_alu'.
+<suppressed ~216 debug messages>
+Removed a total of 72 cells.
+
+4.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \malbolge_alu..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+  Analyzing evaluation results.
+Removed 0 multiplexer ports.
+<suppressed ~13 debug messages>
+
+4.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \malbolge_alu.
+    New ctrl vector for $pmux cell $procmux$224: $auto$opt_reduce.cc:134:opt_pmux$340
+    New ctrl vector for $pmux cell $procmux$209: $auto$opt_reduce.cc:134:opt_pmux$342
+    New ctrl vector for $pmux cell $procmux$194: $auto$opt_reduce.cc:134:opt_pmux$344
+    New ctrl vector for $pmux cell $procmux$254: $auto$opt_reduce.cc:134:opt_pmux$346
+    New ctrl vector for $pmux cell $procmux$329: $auto$opt_reduce.cc:134:opt_pmux$348
+    New ctrl vector for $pmux cell $procmux$314: $auto$opt_reduce.cc:134:opt_pmux$350
+    New ctrl vector for $pmux cell $procmux$299: $auto$opt_reduce.cc:134:opt_pmux$352
+    New ctrl vector for $pmux cell $procmux$269: $auto$opt_reduce.cc:134:opt_pmux$354
+    New ctrl vector for $pmux cell $procmux$284: $auto$opt_reduce.cc:134:opt_pmux$356
+    New ctrl vector for $pmux cell $procmux$239: $auto$opt_reduce.cc:134:opt_pmux$358
+  Optimizing cells in module \malbolge_alu.
+Performed a total of 10 changes.
+
+4.5. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\malbolge_alu'.
+Removed a total of 0 cells.
+
+4.6. Executing OPT_DFF pass (perform DFF optimizations).
+
+4.7. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \malbolge_alu..
+Removed 0 unused cells and 298 unused wires.
+<suppressed ~2 debug messages>
+
+4.8. Executing OPT_EXPR pass (perform const folding).
+Optimizing module malbolge_alu.
+
+4.9. Rerunning OPT passes. (Maybe there is more to do..)
+
+4.10. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \malbolge_alu..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+  Analyzing evaluation results.
+Removed 0 multiplexer ports.
+<suppressed ~13 debug messages>
+
+4.11. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \malbolge_alu.
+Performed a total of 0 changes.
+
+4.12. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\malbolge_alu'.
+Removed a total of 0 cells.
+
+4.13. Executing OPT_DFF pass (perform DFF optimizations).
+
+4.14. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \malbolge_alu..
+
+4.15. Executing OPT_EXPR pass (perform const folding).
+Optimizing module malbolge_alu.
+
+4.16. Finished OPT passes. (There is nothing left to do.)
+
+5. Executing TECHMAP pass (map to technology primitives).
+
+5.1. Executing Verilog-2005 frontend: yosys/modfloor_map.v
+Parsing Verilog input from `yosys/modfloor_map.v' to AST representation.
+Generating RTLIL representation for module `\_90_modfloor_expand'.
+Successfully finished Verilog frontend.
+
+5.2. Continuing TECHMAP pass.
+No more expansions possible.
+<suppressed ~3 debug messages>
+
+6. Executing PMUXTREE pass.
+
+7. Executing OPT pass (performing simple optimizations).
+
+7.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module malbolge_alu.
+
+7.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\malbolge_alu'.
+<suppressed ~30 debug messages>
+Removed a total of 10 cells.
+
+7.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \malbolge_alu..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+  Analyzing evaluation results.
+Removed 0 multiplexer ports.
+<suppressed ~13 debug messages>
+
+7.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \malbolge_alu.
+Performed a total of 0 changes.
+
+7.5. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\malbolge_alu'.
+Removed a total of 0 cells.
+
+7.6. Executing OPT_DFF pass (perform DFF optimizations).
+
+7.7. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \malbolge_alu..
+Removed 30 unused cells and 60 unused wires.
+<suppressed ~31 debug messages>
+
+7.8. Executing OPT_EXPR pass (perform const folding).
+Optimizing module malbolge_alu.
+
+7.9. Rerunning OPT passes. (Maybe there is more to do..)
+
+7.10. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \malbolge_alu..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+  Analyzing evaluation results.
+Removed 0 multiplexer ports.
+<suppressed ~13 debug messages>
+
+7.11. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \malbolge_alu.
+Performed a total of 0 changes.
+
+7.12. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\malbolge_alu'.
+Removed a total of 0 cells.
+
+7.13. Executing OPT_DFF pass (perform DFF optimizations).
+
+7.14. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \malbolge_alu..
+
+7.15. Executing OPT_EXPR pass (perform const folding).
+Optimizing module malbolge_alu.
+
+7.16. Finished OPT passes. (There is nothing left to do.)
+
+8. Executing JSON backend.
+
+End of script. Logfile hash: 8dfe53b146, CPU: user 0.34s system 0.01s, MEM: 15.84 MB peak
+Yosys 0.33 (git sha1 2584903a060)
+Time spent: 34% 7x opt_expr (0 sec), 23% 4x opt_clean (0 sec), ...
+PATH="/home/hatch/workspace/.tools/saw-1.5-ubuntu-24.04-X64-with-solvers/bin/:$PATH" /home/hatch/workspace/.tools/saw-1.5-ubuntu-24.04-X64-with-solvers/bin/saw saw/alu_equivalence.saw
+Loading file "saw/alu_equivalence.saw"
+PASS: SAW proof
+make: Entering directory '/home/hatch/workspace/sovereign-eda/board/sram-write-cell'
+mkdir -p build
+ghdl -a --std=08 sram_write_cell.vhd
+ghdl --synth --std=08 --out=verilog sram_write_cell.vhd -e sram_write_cell > build/sram_write_cell.v
+yosys -p 'read_verilog build/sram_write_cell.v; hierarchy -top sram_write_cell; proc; opt; techmap -map ../../malbolge-circuit/yosys/modfloor_map.v; pmuxtree; opt; write_json build/sram_write_cell.json'
+
+ /----------------------------------------------------------------------------\
+ |                                                                            |
+ |  yosys -- Yosys Open SYnthesis Suite                                       |
+ |                                                                            |
+ |  Copyright (C) 2012 - 2020  Claire Xenia Wolf <claire@yosyshq.com>         |
+ |                                                                            |
+ |  Permission to use, copy, modify, and/or distribute this software for any  |
+ |  purpose with or without fee is hereby granted, provided that the above    |
+ |  copyright notice and this permission notice appear in all copies.         |
+ |                                                                            |
+ |  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES  |
+ |  WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF          |
+ |  MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR   |
+ |  ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES    |
+ |  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN     |
+ |  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF   |
+ |  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.            |
+ |                                                                            |
+ \----------------------------------------------------------------------------/
+
+ Yosys 0.33 (git sha1 2584903a060)
+
+
+-- Running command `read_verilog build/sram_write_cell.v; hierarchy -top sram_write_cell; proc; opt; techmap -map ../../malbolge-circuit/yosys/modfloor_map.v; pmuxtree; opt; write_json build/sram_write_cell.json' --
+
+1. Executing Verilog-2005 frontend: build/sram_write_cell.v
+Parsing Verilog input from `build/sram_write_cell.v' to AST representation.
+Generating RTLIL representation for module `\sram_write_cell'.
+Successfully finished Verilog frontend.
+
+2. Executing HIERARCHY pass (managing design hierarchy).
+
+2.1. Analyzing design hierarchy..
+Top module:  \sram_write_cell
+
+2.2. Analyzing design hierarchy..
+Top module:  \sram_write_cell
+Removed 0 unused modules.
+
+3. Executing PROC pass (convert processes to netlists).
+
+3.1. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Cleaned up 0 empty switches.
+
+3.2. Executing PROC_RMDEAD pass (remove dead branches from decision trees).
+Removed a total of 0 dead cases.
+
+3.3. Executing PROC_PRUNE pass (remove redundant assignments in processes).
+Removed 0 redundant assignments.
+Promoted 0 assignments to connections.
+
+3.4. Executing PROC_INIT pass (extract init attributes).
+
+3.5. Executing PROC_ARST pass (detect async resets in processes).
+
+3.6. Executing PROC_ROM pass (convert switches to ROMs).
+Converted 0 switches.
+
+3.7. Executing PROC_MUX pass (convert decision trees to multiplexers).
+
+3.8. Executing PROC_DLATCH pass (convert process syncs to latches).
+
+3.9. Executing PROC_DFF pass (convert process syncs to FFs).
+
+3.10. Executing PROC_MEMWR pass (convert process memory writes to cells).
+
+3.11. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Cleaned up 0 empty switches.
+
+3.12. Executing OPT_EXPR pass (perform const folding).
+Optimizing module sram_write_cell.
+
+4. Executing OPT pass (performing simple optimizations).
+
+4.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module sram_write_cell.
+
+4.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\sram_write_cell'.
+Removed a total of 0 cells.
+
+4.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \sram_write_cell..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+  Analyzing evaluation results.
+Removed 0 multiplexer ports.
+<suppressed ~1 debug messages>
+
+4.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \sram_write_cell.
+Performed a total of 0 changes.
+
+4.5. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\sram_write_cell'.
+Removed a total of 0 cells.
+
+4.6. Executing OPT_DFF pass (perform DFF optimizations).
+
+4.7. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \sram_write_cell..
+Removed 0 unused cells and 1 unused wires.
+<suppressed ~1 debug messages>
+
+4.8. Executing OPT_EXPR pass (perform const folding).
+Optimizing module sram_write_cell.
+
+4.9. Rerunning OPT passes. (Maybe there is more to do..)
+
+4.10. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \sram_write_cell..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+  Analyzing evaluation results.
+Removed 0 multiplexer ports.
+<suppressed ~1 debug messages>
+
+4.11. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \sram_write_cell.
+Performed a total of 0 changes.
+
+4.12. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\sram_write_cell'.
+Removed a total of 0 cells.
+
+4.13. Executing OPT_DFF pass (perform DFF optimizations).
+
+4.14. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \sram_write_cell..
+
+4.15. Executing OPT_EXPR pass (perform const folding).
+Optimizing module sram_write_cell.
+
+4.16. Finished OPT passes. (There is nothing left to do.)
+
+5. Executing TECHMAP pass (map to technology primitives).
+
+5.1. Executing Verilog-2005 frontend: ../../malbolge-circuit/yosys/modfloor_map.v
+Parsing Verilog input from `../../malbolge-circuit/yosys/modfloor_map.v' to AST representation.
+Generating RTLIL representation for module `\_90_modfloor_expand'.
+Successfully finished Verilog frontend.
+
+5.2. Continuing TECHMAP pass.
+No more expansions possible.
+<suppressed ~3 debug messages>
+
+6. Executing PMUXTREE pass.
+
+7. Executing OPT pass (performing simple optimizations).
+
+7.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module sram_write_cell.
+
+7.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\sram_write_cell'.
+Removed a total of 0 cells.
+
+7.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \sram_write_cell..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+  Analyzing evaluation results.
+Removed 0 multiplexer ports.
+<suppressed ~1 debug messages>
+
+7.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \sram_write_cell.
+Performed a total of 0 changes.
+
+7.5. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\sram_write_cell'.
+Removed a total of 0 cells.
+
+7.6. Executing OPT_DFF pass (perform DFF optimizations).
+
+7.7. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \sram_write_cell..
+
+7.8. Executing OPT_EXPR pass (perform const folding).
+Optimizing module sram_write_cell.
+
+7.9. Finished OPT passes. (There is nothing left to do.)
+
+8. Executing JSON backend.
+
+End of script. Logfile hash: d018460dcc, CPU: user 0.01s system 0.01s, MEM: 10.21 MB peak
+Yosys 0.33 (git sha1 2584903a060)
+Time spent: 34% 6x opt_expr (0 sec), 17% 3x opt_clean (0 sec), ...
+PATH="/home/hatch/workspace/.tools/saw-1.5-ubuntu-24.04-X64-with-solvers/bin/:$PATH" /home/hatch/workspace/.tools/saw-1.5-ubuntu-24.04-X64-with-solvers/bin/saw write_cell_equivalence.saw
+Loading file "write_cell_equivalence.saw"
+make: Leaving directory '/home/hatch/workspace/sovereign-eda/board/sram-write-cell'
+PASS: SRAM SAW proof
+BLOCKED: CUDA compile (SW-103) -- nvcc not installed on this VM
+BLOCKED: PTX assembly (SW-102) -- ptxas not installed on this VM
+
+Traceability check:
+PASS: every requirement ID has a traceability row
+
+Watermark check (excludes WATERMARK.md and this gate log):
+FAIL: .gitignore hash mismatch in WATERMARK.md
+FAIL: README.md hash mismatch in WATERMARK.md
+FAIL: STATUS.md hash mismatch in WATERMARK.md
+FAIL: architecture/failure-modes/FMEA.md hash mismatch in WATERMARK.md
+FAIL: assurance/defects/defect-log.md hash mismatch in WATERMARK.md
+FAIL: board/p4-dual-circuit/cryptol/CircuitContract.cry is tracked but not listed in WATERMARK.md
+FAIL: board/p4-dual-circuit/cryptol/SRAM.cry is tracked but not listed in WATERMARK.md
+FAIL: board/p4-dual-circuit/cryptol/State.cry is tracked but not listed in WATERMARK.md
+FAIL: board/p4-dual-circuit/saw/digital_equivalence.saw hash mismatch in WATERMARK.md
+FAIL: board/p4-dual-circuit/saw/sram_refinement.saw hash mismatch in WATERMARK.md
+FAIL: board/sram-write-cell/sram.cry hash mismatch in WATERMARK.md
+FAIL: board/sram-write-cell/write_cell_equivalence.saw hash mismatch in WATERMARK.md
+FAIL: configuration/toolchain-locks/toolchain.md hash mismatch in WATERMARK.md
+FAIL: malbolge-circuit/Makefile hash mismatch in WATERMARK.md
+FAIL: malbolge-circuit/saw/alu_equivalence.saw hash mismatch in WATERMARK.md
+FAIL: reports/release-readiness/release-readiness.md hash mismatch in WATERMARK.md
+FAIL: requirements/software/REQ-SW.md hash mismatch in WATERMARK.md
+FAIL: requirements/traceability.csv hash mismatch in WATERMARK.md
+FAIL: scripts/release-gate.sh hash mismatch in WATERMARK.md
+FAIL: tests/README.md hash mismatch in WATERMARK.md
+FAIL: verification/formal/formal-evidence.md hash mismatch in WATERMARK.md
+FAIL: verification/property-tests/property-tests.md hash mismatch in WATERMARK.md
+
+Known limits (recorded, not gate failures):
+- V1 tryteToNat is not the inverse of natToTryte (D-001, 58806/59049 measured). V1 is preserved as-is per ADR-002.
+- Lean ProcessorRoot does not elaborate under core-only Lean here (D-007). It needs Batteries/Mathlib.
+- Benchmark numbers are a host CPU proxy, not GPU timing.
+
+Gate result: 25 passed, 3 failed or blocked.
+GATE FAIL: this tree must NOT be pushed and no baseline is declared.

@@ -6,3 +6,13 @@ type Word = [8]
 writeCell : Word -> Word -> Bit -> Word
 writeCell oldValue newValue enable =
   if enable then newValue else oldValue
+
+// Circuit-interface wrapper for yosys_verify: a Yosys module is a
+// function from a record of input port values to a record of output
+// port values, so the spec must have that record type. The SAW script
+// checks writeCellCircuit, which is writeCell in record form. Note
+// the enable field is [1], not Bit: a 1-bit port imports as [1], and
+// Bit does not unify with [1] here (the Malbolge aluSpec uses
+// valid : [1] for the same reason).
+writeCellCircuit : {old_value : Word, new_value : Word, enable : [1]} -> {result : Word}
+writeCellCircuit inp = { result = writeCell inp.old_value inp.new_value (inp.enable == 1) }

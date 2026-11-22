@@ -1,0 +1,20 @@
+standard,clause,applies,evidence,status
+NPR 7150.2D,Requirements engineering,Yes,requirements/system/REQ-SYS.md; requirements/software/REQ-SW.md; requirements/interfaces/REQ-IF.md; requirements/safety/REQ-SAF.md,Met
+NPR 7150.2D,Architecture and design,Yes,architecture/system-design.md; architecture/interface-control/ICD.md,Met
+NPR 7150.2D,Traceability,Yes,requirements/traceability.csv,Met (with BLOCKED rows stated, not hidden)
+NPR 7150.2D,Verification against requirements,Yes,verification/formal/formal-evidence.md; reports/test-results/gate-2026-11-21.log,Partial — WhyML and SAW blocked on this VM (D-002 D-003)
+NPR 7150.2D,Testing (unit integration system regression boundary acceptance),Yes,tests/README.md; malbolge-circuit/tests/; gpu/tests/,Partial — unit and host-oracle tests pass; no board RTL simulation testbench (D-006); no GPU hardware run
+NPR 7150.2D,Static analysis,Yes,verification/static-analysis/static-analysis.md,Partial — compiler warnings and GHDL analysis only; no dedicated static-analysis tool run
+NPR 7150.2D,Software safety,Yes,requirements/safety/REQ-SAF.md; assurance/hazards/hazard-log.md,Met for this non-safety-critical class
+NPR 7150.2D,Configuration management,Yes,configuration/baselines/baseline.md; WATERMARK.md; CHANGELOG.md,Met
+NPR 7150.2D,Software assurance and peer review,Yes,assurance/peer-reviews/peer-review-2026-11-21.md,Partial — owner review only; no independent review done
+NPR 7150.2D,Cybersecurity,Yes,SECURITY.md,Met for this class — no network service no credentials no secrets in tree
+NPR 7150.2D,Operations deployment recovery maintenance,Yes,operations/deployment.md; operations/recovery.md; operations/maintenance.md,Met
+NPR 7150.2D,Release evidence and approval,Yes,reports/release-readiness/release-readiness.md,Not met — gate FAILS on 2026-11-21; no release approval; no push
+NASA-STD-8739.8B,Software assurance,Yes,assurance/risk-register/risk-register.csv; assurance/defects/defect-log.md,Partial — assurance artifacts exist; independent assessment not done
+NASA-STD-8739.8B,Software safety,Yes,requirements/safety/REQ-SAF.md; assurance/hazards/hazard-log.md,Met for this non-safety-critical class
+NASA-STD-8739.8B,Independent verification and validation,No — flight software only; this tree is non-flight,Not applicable — no IV&V claimed or required for this class,Not applicable
+NASA-STD-8739.8B,100% coverage of safety-critical components,No — no safety-critical components in this tree,Not applicable,Not applicable
+NASA-HDBK-2203,Implementation guidance,Yes,architecture/system-design.md; verification/formal/formal-evidence.md,Met as guidance — handbook followed where it applies to this class
+NPR 7123.1,Systems engineering processes,Yes,requirements/classification.md; architecture/system-design.md,Met for this class
+NPR 7120.5,Program and project management,Yes,configuration/baselines/baseline.md; operations/maintenance.md,Met for this class — single-owner research project

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: LicenseRef-Sovereign-Leviathan-SL-AGPL3-001
 // Copyright (C) 2026 SnapKitty West
 
-import "../cryptol/sram.cry";
+import "../cryptol/SRAM.cry";
 
 let prove_sram_refinement = do {
     print "Proving SRAM.write_read_match...";
-    prove_print z3 {{ SRAM::write_read_match }};
+    prove_print z3 {{ write_read_match }};
 };

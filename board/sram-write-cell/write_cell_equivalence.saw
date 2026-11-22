@@ -5,7 +5,7 @@ enable_experimental;
 
 import "sram.cry";
 
-m <- yosys_import "sram_write_cell.json";
+m <- yosys_import "build/sram_write_cell.json";
 
 write_proof <- yosys_verify
   {{ m.sram_write_cell }}

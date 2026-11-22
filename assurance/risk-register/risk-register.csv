@@ -1,0 +1,9 @@
+id,risk,likelihood,impact,mitigation,status
+R-001,WhyML proof cannot be re-run on this VM (no Why3),High,Medium — formal evidence for the ALU semantics is stale,Restore Why3 + Z3 or run the proof on a machine that has them; record the result in verification/formal/formal-evidence.md,Open
+R-002,SAW proof cannot run on this VM (no Yosys),High,Medium — equivalence evidence for the ALU is stale,Restore Yosys + ghdl plugin or run on a machine that has them; the proof is also slow on 1.5 CPUs,Open
+R-003,Lean ProcessorRoot does not elaborate under core-only Lean here,High,Low — the file needs Batteries/Mathlib which are not built here,Check it in the owner's full Lean environment; do not edit the verbatim file from this VM's errors,Open
+R-004,Board RTL has no simulation testbench,Medium,Medium — RTL behavior is un demonstrated,Write a GHDL testbench for the controller and the write-cell and run it,Open
+R-005,PTX never assembled and CUDA never compiled here,High,Low — host harnesses cover the arithmetic only,Assemble with ptxas and compile with nvcc on a machine that has them; run the kernels on the Jetson for timing,Open
+R-006,Thermal sweep and PEX check have no retained run result,Medium,Low — analog validation is un demonstrated,Run them and retain the logs in reports/test-results/,Open
+R-007,Release pushed around a failing gate,Low,High — an unverified baseline is published,Owner push discipline: no push from a failing gate; the gate log is the release record,Open — mitigated by procedure only
+R-008,Toolchain drift across VM replacements (Why3/Yosys wiped before),High,Medium — proofs that passed stop running,Pin the toolchain in configuration/toolchain-locks/toolchain.md and restore from it after a replacement,Open

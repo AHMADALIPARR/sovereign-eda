@@ -3,6 +3,10 @@ malbolge
 malbolge-circuit/reference/malbolge-original
 malbolge-circuit/build/
 malbolge-circuit/work-obj08.cf
+board/sram-write-cell/build/
+board/sram-write-cell/work-obj08.cf
+board/p4-dual-circuit/build/
+board/p4-dual-circuit/work-obj08.cf
 gpu/tests/verify_cuda_host
 gpu/tests/verify_v2_host
 gpu/tests/bench_v1_v2
