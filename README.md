@@ -156,7 +156,7 @@ The layers agree on the same state machine:
 | SAW proof gates | `board/p4-dual-circuit/saw/digital_equivalence.saw`, `board/p4-dual-circuit/saw/sram_refinement.saw`, `board/p4-dual-circuit/saw/proof_gate.saw` | Yosys imports the RTL and verifies it against the Cryptol contracts; the proof gate runs both and prints the pass line |
 | VHDL RTL | `board/p4-dual-circuit/rtl/p4_controller.vhd`, `board/p4-dual-circuit/rtl/dual_circuit.vhd`, `board/p4-dual-circuit/rtl/sram_bank.vhd`, `board/p4-dual-circuit/rtl/phase_calibrator.vhd` | The synthesizable controller, the structural top, the SRAM bank, and the phase calibrator |
 | Verilog-A analog | `board/p4-dual-circuit/analog/oscillator.va`, `board/p4-dual-circuit/analog/relaxation.va`, `board/p4-dual-circuit/analog/parasitic_model.sp` | The oscillator and relaxation analog blocks, and the parasitic model |
-| Verification | `board/p4-dual-circuit/verification/psl/dual_circuit.psl`, `board/p4-dual-circuit/verification/pex/pex_rc_check.awk`, `board/p4-dual-circuit/verification/thermal/thermal_sweep.sp` | PSL properties on the controller, an RC delay and coupling budget checker, and a thermal sweep |
+| Verification | `board/p4-dual-circuit/verification/psl/dual_circuit.psl`, `board/p4-dual-circuit/verification/pex/pex_rc_check.awk`, `board/p4-dual-circuit/verification/thermal/thermal_sweep.sp`, `board/p4-dual-circuit/verification/tb_p4_controller.vhd`, `board/p4-dual-circuit/verification/tb_sram_bank.vhd`, `board/p4-dual-circuit/verification/tb_dual_circuit.vhd` | PSL properties on the controller, an RC delay and coupling budget checker, a thermal sweep, and GHDL testbenches on the controller, the SRAM bank, and the structural top |
 
 The SRAM write-cell, in `board/sram-write-cell/`, is the same pattern at one-cell scale: a WhyML semantics, a Cryptol contract, a SAW equivalence, and a VHDL RTL, all stating the same write: if enabled, the result is the new value, else the old value.
 
@@ -169,8 +169,10 @@ The SRAM write-cell, in `board/sram-write-cell/`, is the same pattern at one-cel
 | `gpu/` | `malbolge_ternary.cu`: CUDA kernels for the ternary tryte operations and the deterministic Malbolge processor step; `malbolge_ternary.ptx`: the PTX assembly kernel for the same operations; `malbolge_ternary_v2.cu` and `malbolge_ternary_v2.ptx`: the v2 benchmark kernels, fixed `tryteToNat` and SWAR packed operations |
 | `gpu/tests/` | `verify_cuda_host.c`: host-side C verification of the CUDA device functions against the Lean definitions, no GPU needed; `verify_v2_host.c`: host-side verification of the v2 kernels against v1 and the Lean v2 definitions; `bench_v1_v2.c`: host CPU proxy benchmark of v1 vs v2 |
 | `board/` | The actual board: `eda.awk` is the full compiler; `eda-basic.awk` is the first version; `mna.awk` is the MNA solver; `examples/` holds board files |
-| `board/p4-dual-circuit/` | The dual-circuit project: `semantics/` (WhyML), `cryptol/` (Cryptol), `saw/` (SAW proof gates), `rtl/` (VHDL), `analog/` (Verilog-A and SPICE), `verification/` (PSL, PEX checker, thermal sweep) |
-| `board/sram-write-cell/` | The SRAM write-cell: WhyML semantics, Cryptol contract, SAW equivalence, VHDL RTL |
+| `board/p4-dual-circuit/` | The dual-circuit project: `semantics/` (WhyML), `cryptol/` (Cryptol), `saw/` (SAW proof gates), `rtl/` (VHDL), `analog/` (Verilog-A and SPICE), `verification/` (PSL, PEX checker, thermal sweep, GHDL testbenches), `Makefile` (analyze, test, prove) |
+| `board/sram-write-cell/` | The SRAM write-cell: WhyML semantics, Cryptol contract, SAW equivalence, VHDL RTL, `Makefile` (analyze, test, prove), `verification/tb_sram_write_cell.vhd` |
+| `requirements/`, `architecture/`, `verification/`, `assurance/`, `configuration/`, `operations/`, `reports/` | The engineering evidence: requirements and traceability, design and decisions, the verification record, hazards, risks and defects, toolchain locks and baselines, deployment and recovery, the release-readiness report and the gate logs |
+| `scripts/` | `release-gate.sh`: the release gate, which runs the checks that can run on the machine it runs on and fails the tree on any failure or block |
 | `STATUS.md` | Verification record |
 
 ## Build and run
@@ -188,13 +190,31 @@ Run the mathematical test oracle:
 cd malbolge-circuit && make test
 ```
 
-Analyze the VHDL:
+Generate the ALU netlist and run the SAW equivalence proof:
 
 ```sh
-cd malbolge-circuit && ghdl -a --std=08 rtl/malbolge_alu.vhd
+cd malbolge-circuit && make analyze
+cd malbolge-circuit && make prove
 ```
 
-The WhyML proof and the SAW/Yosys equivalence proof need their toolchains; see `malbolge-circuit/Makefile` targets `whyml`, `analyze`, and `prove`.
+The netlist goes through GHDL synthesis to Verilog plus Yosys
+`read_verilog`, since Ubuntu does not ship the Yosys GHDL plugin.
+The proof uses bitwuzla and takes about six seconds. The WhyML
+proof runs with `make whyml` in `malbolge-circuit/`.
+
+Run the board testbenches:
+
+```sh
+cd board/p4-dual-circuit && make test
+cd ../sram-write-cell && make test
+```
+
+Run the host CPU proxy benchmark of v1 against v2:
+
+```sh
+cc -std=c11 -O2 -Wall -Wextra gpu/tests/bench_v1_v2.c -o bench_v1_v2
+./bench_v1_v2
+```
 
 Compile the CUDA source to PTX, or assemble the PTX directly:
 
@@ -230,6 +250,33 @@ Pipe a board into ngspice:
 ```sh
 awk -v mode=spice -f board/eda.awk board/examples/board.txt | ngspice -b -
 ```
+
+## Benchmarks
+
+Measured 2026-11-21 on the host CPU, no GPU on that machine. The
+v1-vs-v2 numbers are a host CPU proxy, not GPU timing. The
+benchmark runs 20M pre-generated random valid-tryte calls per
+operation, nanoseconds per call:
+
+| Operation | v1 loop | v2 SWAR | Ratio |
+| --------- | ------- | ------- | ----- |
+| tryteAdd | 22.22 ns | 5.14 ns | 4.32x |
+| tryteSub | 24.62 ns | 4.74 ns | 5.19x |
+| crazyTryte | 16.96 ns | 4.22 ns | 4.02x |
+| tryteToNat | 9.31 ns | 9.38 ns | 0.99x |
+
+v2 `tryteToNat` is a loop, not SWAR, so it is not faster than v1;
+the gain is in the SWAR operations. The roundtrip
+`tryteToNat (natToTryte n) = n` holds for all 59049 values in v2
+(0 failures) and fails for 58806 of 59049 in v1, which is preserved
+as-is. The v1 host harness passes all its elementwise checks, and
+the v2 host harness passes all checks.
+
+Proof times on the same machine: the Malbolge SAW equivalence
+proof with bitwuzla takes about six seconds; the WhyML proof
+passes; the p4 proof gate passes with z3. The release gate passes
+25 checks and is blocked only on CUDA compile and PTX assembly,
+which need nvcc and ptxas.
 
 ## Engineering evidence
 
