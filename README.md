@@ -113,6 +113,8 @@ The processor is the tuple $(A, C, D, M, E, s)$: the three registers, the 59049-
 
 Each tryte is a 20-bit packed `uint32_t`. The CUDA kernels implement the same operations the Lean file defines: `tritAdd`, `tritSub`, `crazyOp`, `tryteToNat`, `natToTryte`, `incrementTryte`, `crazyTryte`, `decryptTryte`, `permuteTryte`, and `decodeInstruction`. The arithmetic kernel applies one operation elementwise across an array of packed trytes. The run kernel gives each thread its own 59049-tryte virtual machine and steps it deterministically. The PTX kernel implements the same operations in assembly for sm_70, with the crazy operation as a shift into the `0x00281A01` lookup table.
 
+A second kernel set, v2, sits beside v1 and does not replace it. It fixes `tryteToNat` so that slot i is the 3^i digit and the roundtrip `tryteToNat (natToTryte n) = n` holds for all 59049 values, and it evaluates the elementwise operations as SWAR bitplane arithmetic: all ten trits of a packed tryte in parallel inside one `uint32_t`, from the `0x55555` / `0xAAAAA` planes, with no loop and no per-lane call. The v2 PTX also carries a scalar kernel with the operation bodies inlined, and a `crazy_op` that collapses the shift-and-mask into a single `bfe.u32`. The per-trit operations are identical between v1 and v2, so `crazyTryte`, `decryptTryte`, and `permuteTryte` agree bit for bit; only the addressing changes. The v2 Lean file, `MalbolgeTryteV2.lean`, states the fixed `tryteToNat` and proves the base-3 digit-reconstruction lemma behind the roundtrip.
+
 ## The board
 
 A board is a plain-text file. One component or directive per line, whitespace-delimited, with `#` or `*` comments. A reference designator, its nets, and its value or model:
@@ -163,10 +165,10 @@ The SRAM write-cell, in `board/sram-write-cell/`, is the same pattern at one-cel
 | Path | Contents |
 | ---- | -------- |
 | `malbolge-circuit/` | The Malbolge circuit project: reference interpreter, VHDL ALU, WhyML, Cryptol, SAW, tests, docs, examples |
-| `lean/` | `MalbolgeProcessor.lean`: the original Malbolge processor formalization, reproduced from photos; `MalbolgeProcessorRoot.lean`: the Malbolge processor formalization, verbatim; `MalbolgePTXKernel.lean`: the PTX kernel specification, verbatim |
-| `gpu/` | `malbolge_ternary.cu`: CUDA kernels for the ternary tryte operations and the deterministic Malbolge processor step; `malbolge_ternary.ptx`: the PTX assembly kernel for the same operations |
-| `gpu/tests/` | `verify_cuda_host.c`: host-side C verification of the CUDA device functions against the Lean definitions, no GPU needed |
-| `board/` | The actual board: `BOARD.md` is the full document; `eda.awk` is the full compiler; `eda-basic.awk` is the first version; `mna.awk` is the MNA solver; `examples/` holds board files |
+| `lean/` | `MalbolgeProcessor.lean`: the original Malbolge processor formalization, reproduced from photos; `MalbolgeProcessorRoot.lean`: the Malbolge processor formalization, verbatim; `MalbolgePTXKernel.lean`: the PTX kernel specification, verbatim; `MalbolgeTryteV2.lean`: the v2 tryte formalization with the fixed `tryteToNat` |
+| `gpu/` | `malbolge_ternary.cu`: CUDA kernels for the ternary tryte operations and the deterministic Malbolge processor step; `malbolge_ternary.ptx`: the PTX assembly kernel for the same operations; `malbolge_ternary_v2.cu` and `malbolge_ternary_v2.ptx`: the v2 benchmark kernels, fixed `tryteToNat` and SWAR packed operations |
+| `gpu/tests/` | `verify_cuda_host.c`: host-side C verification of the CUDA device functions against the Lean definitions, no GPU needed; `verify_v2_host.c`: host-side verification of the v2 kernels against v1 and the Lean v2 definitions; `bench_v1_v2.c`: host CPU proxy benchmark of v1 vs v2 |
+| `board/` | The actual board: `eda.awk` is the full compiler; `eda-basic.awk` is the first version; `mna.awk` is the MNA solver; `examples/` holds board files |
 | `board/p4-dual-circuit/` | The dual-circuit project: `semantics/` (WhyML), `cryptol/` (Cryptol), `saw/` (SAW proof gates), `rtl/` (VHDL), `analog/` (Verilog-A and SPICE), `verification/` (PSL, PEX checker, thermal sweep) |
 | `board/sram-write-cell/` | The SRAM write-cell: WhyML semantics, Cryptol contract, SAW equivalence, VHDL RTL |
 | `STATUS.md` | Verification record |
