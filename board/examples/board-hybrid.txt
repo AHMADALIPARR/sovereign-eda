@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-Sovereign-Leviathan-SL-AGPL3-001
+# Copyright (C) 2026 SnapKitty West
 # Hybrid Analog Board: RC Filter + Behavioral Nonlinear Memristive Load
 V1   in   0     5.0
 R1   in   out   1k

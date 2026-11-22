@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: LicenseRef-Sovereign-Leviathan-SL-AGPL3-001 -->
+<!-- Copyright (C) 2026 SnapKitty West -->
 # Malbolge Circuit Refinement — Phase 1
 
 A real, small, bit-precise **10-trit ALU** for the original Malbolge machine.

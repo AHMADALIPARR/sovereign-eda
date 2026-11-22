@@ -151,12 +151,12 @@ The layers agree on the same state machine:
 
 | Layer | Files | What it states |
 | ----- | ----- | -------------- |
-| WhyML semantics | `semantics/state.mlw`, `semantics/sram.mlw`, `semantics/oscillator.mlw`, `semantics/refinement.mlw` | The mode type, the state invariants, the SRAM read/write, the oscillator, and the refinement from the abstract state to the circuit |
-| Cryptol contracts | `cryptol/state.cry`, `cryptol/sram.cry`, `cryptol/circuit_contract.cry` | The executable state step, the SRAM model, and the circuit contract; run-implies-locked as a property |
-| SAW proof gates | `saw/digital_equivalence.saw`, `saw/sram_refinement.saw`, `saw/proof_gate.saw` | Yosys imports the RTL and verifies it against the Cryptol contracts; the proof gate runs both and prints the pass line |
-| VHDL RTL | `rtl/p4_controller.vhd`, `rtl/dual_circuit.vhd`, `rtl/sram_bank.vhd`, `rtl/phase_calibrator.vhd` | The synthesizable controller, the structural top, the SRAM bank, and the phase calibrator |
-| Verilog-A analog | `analog/oscillator.va`, `analog/relaxation.va`, `analog/parasitic_model.sp` | The oscillator and relaxation analog blocks, and the parasitic model |
-| Verification | `verification/psl/dual_circuit.psl`, `verification/pex/pex_rc_check.awk`, `verification/thermal/thermal_sweep.sp` | PSL properties on the controller, an RC delay and coupling budget checker, and a thermal sweep |
+| WhyML semantics | `board/p4-dual-circuit/semantics/state.mlw`, `board/p4-dual-circuit/semantics/sram.mlw`, `board/p4-dual-circuit/semantics/oscillator.mlw`, `board/p4-dual-circuit/semantics/refinement.mlw` | The mode type, the state invariants, the SRAM read/write, the oscillator, and the refinement from the abstract state to the circuit |
+| Cryptol contracts | `board/p4-dual-circuit/cryptol/state.cry`, `board/p4-dual-circuit/cryptol/sram.cry`, `board/p4-dual-circuit/cryptol/circuit_contract.cry` | The executable state step, the SRAM model, and the circuit contract; run-implies-locked as a property |
+| SAW proof gates | `board/p4-dual-circuit/saw/digital_equivalence.saw`, `board/p4-dual-circuit/saw/sram_refinement.saw`, `board/p4-dual-circuit/saw/proof_gate.saw` | Yosys imports the RTL and verifies it against the Cryptol contracts; the proof gate runs both and prints the pass line |
+| VHDL RTL | `board/p4-dual-circuit/rtl/p4_controller.vhd`, `board/p4-dual-circuit/rtl/dual_circuit.vhd`, `board/p4-dual-circuit/rtl/sram_bank.vhd`, `board/p4-dual-circuit/rtl/phase_calibrator.vhd` | The synthesizable controller, the structural top, the SRAM bank, and the phase calibrator |
+| Verilog-A analog | `board/p4-dual-circuit/analog/oscillator.va`, `board/p4-dual-circuit/analog/relaxation.va`, `board/p4-dual-circuit/analog/parasitic_model.sp` | The oscillator and relaxation analog blocks, and the parasitic model |
+| Verification | `board/p4-dual-circuit/verification/psl/dual_circuit.psl`, `board/p4-dual-circuit/verification/pex/pex_rc_check.awk`, `board/p4-dual-circuit/verification/thermal/thermal_sweep.sp` | PSL properties on the controller, an RC delay and coupling budget checker, and a thermal sweep |
 
 The SRAM write-cell, in `board/sram-write-cell/`, is the same pattern at one-cell scale: a WhyML semantics, a Cryptol contract, a SAW equivalence, and a VHDL RTL, all stating the same write: if enabled, the result is the new value, else the old value.
 

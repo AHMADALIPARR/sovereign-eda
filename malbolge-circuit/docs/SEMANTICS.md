@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: LicenseRef-Sovereign-Leviathan-SL-AGPL3-001 -->
+<!-- Copyright (C) 2026 SnapKitty West -->
 # Reference-interpreter semantics (design contract)
 
 Machine: 59,049 ten-trit words, mutable unified instruction/data memory,
